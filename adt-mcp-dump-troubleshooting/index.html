@@ -210,7 +210,7 @@
 <blockquote>
 <p>&quot;AI 에이전트에게 ADT MCP 연결만 쥐여주면, GUI 없이 덤프의 원인을 특정하고 해결까지 검증할 수 있을까?&quot;</p>
 </blockquote>
-<p>마침 재료가 있었다. S4H 시스템에서 CO 실제 배부(KSU5)가 같은 덤프로 4번 연속 죽어 있었다. 에이전트에게 던진 첫 문장은 한 줄이었다.</p>
+<p>마침 재료가 있었다. S4H 시스템에서 CO 실제 배부(KSU5)가 같은 덤프로 4번 연속 실패해 있었다. 에이전트에게 던진 첫 문장은 한 줄이었다.</p>
 <blockquote>
 <p>&quot;MCP로 s4h 서버에 접속해서, ST22에 존재하는 덤프가 있는지 확인하고 가장 최근 덤프 log를 분석해서 리포트 해주세요. (원인 파악 및 솔루션)&quot;</p>
 </blockquote>
@@ -260,7 +260,7 @@
 <hr>
 <h2 id="s3">요약</h2>
 <ul>
-<li><strong>증상</strong> — KSU5(실제 배부) 실행 시 <code>DBSQL_REDIRECT_INCONSISTENCY</code> 덤프 4연속 발생. 표준 프로그램 SAPFCOAL이 COEP 조회 중 사망.</li>
+<li><strong>증상</strong> — KSU5(실제 배부) 실행 시 <code>DBSQL_REDIRECT_INCONSISTENCY</code> 덤프 4연속 발생. 표준 프로그램 SAPFCOAL이 COEP 조회 중 덤프.</li>
 <li><strong>원인</strong> — 코딩블록 고객 확장(CI_COBL)에 추가된 <strong>ZZ 필드 17개</strong>가 COEP 테이블에는 반영됐지만, S/4HANA 호환성 뷰 <strong>V_COEP에는 미주입</strong> → 테이블/뷰 정의 불일치로 커널이 SQL 리다이렉트를 거부.</li>
 <li><strong>해결</strong> — <code>RGZZGLUX</code>는 오답(CO 뷰는 처리 범위 밖). 정답은 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> (패키지 FINS_CO_UTIL). 실행 후 V_COEP 계열 뷰 24종 재생성 → KSU5 정상 완료, 덤프 재발 없음.</li>
 </ul>
@@ -354,7 +354,7 @@
 4 K_ALLOCATIONS_RUN       SAPLKGA2   LKGA2U01  126
 3 RUN                     SAPMKGA2   MKGA2F10   93   ← KSU5 실행
 </code></pre>
-<p>조합하면: <strong>KSU5로 배부 사이클 A000WNACT2(세그먼트 &quot;가구 본사비 실적 배부&quot;)를 재실행 → 기존 CO 문서 0300010300의 역분개 단계 → COEP 읽기에서 사망.</strong> 예외 객체의 <code>ENTITY=COEP / REDIRECT=V_COEP</code>, 커널 함수 <code>checkRedirection</code>(dbi_ast_symbol_table.cpp:1616), <code>SQLCODE=0</code>까지 확인 — DB 오류가 아니라 <strong>순수 DDIC 메타데이터 불일치</strong>라는 뜻이다.</p>
+<p>조합하면: <strong>KSU5로 배부 사이클 A000WNACT2(세그먼트 &quot;가구 본사비 실적 배부&quot;)를 재실행 → 기존 CO 문서 0300010300의 역분개 단계 → COEP 읽기에서 덤프.</strong> 예외 객체의 <code>ENTITY=COEP / REDIRECT=V_COEP</code>, 커널 함수 <code>checkRedirection</code>(dbi_ast_symbol_table.cpp:1616), <code>SQLCODE=0</code>까지 확인 — DB 오류가 아니라 <strong>순수 DDIC 메타데이터 불일치</strong>라는 뜻이다.</p>
 <blockquote>
 <p><strong>여기서 배경 지식 하나.</strong> S/4HANA에서 CO 개별항목의 실적 데이터는 ACDOCA로 통합됐고, COEP를 읽는 레거시 코드는 커널이 호환성 뷰 V_COEP로 몰래 리다이렉트한다. 이 리다이렉트 시점마다 커널이 테이블과 뷰의 필드 정의를 비교하는데, 하나라도 어긋나면 이 덤프가 난다.</p>
 </blockquote>
