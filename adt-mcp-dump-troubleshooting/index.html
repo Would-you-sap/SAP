@@ -165,6 +165,13 @@
   .doc .cl-bubble.cl-rich ol,.doc .cl-bubble.cl-rich ul{margin:.5rem auto .5rem 1.3rem}
   .doc .cl-bubble.cl-rich li{margin:.3rem auto;font-size:14px}
   .doc .cl-bubble.cl-rich em{color:var(--ink-faint);font-size:12.5px}
+  /* 시리즈 배너 */
+  .doc .series-banner{display:flex;gap:.6rem;align-items:flex-start;margin:0 auto 1.6rem;padding:.75rem 1.1rem;background:linear-gradient(90deg,#EEF4FB,#F7FAFD);border:1px solid #D8E4F2;border-radius:12px}
+  .doc .series-banner .series-ic{font-size:16px;line-height:1.5;flex:none}
+  .doc .series-banner .series-body{font-size:14px;color:#2C3340;line-height:1.6}
+  .doc .series-banner .series-body > :first-child{margin-top:0}
+  .doc .series-banner .series-body > :last-child{margin-bottom:0}
+  .doc .series-banner a{font-weight:700}
 </style>
 </head>
 <body>
@@ -181,6 +188,8 @@
 </header>
 
 <main class="doc">
+<div class="series-banner"><span class="series-ic">🔗</span><div class="series-body"><p><strong>AI × MCP 시리즈 · 2편 (ADT MCP)</strong> — 1편 <a href="https://would-you-sap.github.io/ui5/ai-fiori-dev/">AI 에이전트와 함께한 SAP Fiori 앱 개발기</a>에서 <strong>Fiori MCP</strong>로 앱을 <em>만들었다면</em>, 이번엔 <strong>ADT MCP</strong>로 운영 장애를 <em>고칩니다</em>. <a href="https://would-you-sap.github.io/ui5/ai-fiori-dev/">→ 1편 보기</a></p>
+</div></div>
 <nav class="toc-gen"><div class="toc-item toc-l1"><a href="#s1">들어가며</a></div><div class="toc-item toc-l1"><a href="#s2">요약</a></div><div class="toc-item toc-l1"><a href="#s3">01. 증상</a></div><div class="toc-item toc-l1"><a href="#s4">02. 덤프 해부</a></div><div class="toc-item toc-l1"><a href="#s5">03. DDIC 스캔</a></div><div class="toc-item toc-l1"><a href="#s6">04. 1차 시도와 실패</a></div><div class="toc-item toc-l1"><a href="#s7">05. 올바른 도구 찾기</a></div><div class="toc-item toc-l1"><a href="#s8">06. 해결과 검증</a></div><div class="toc-item toc-l1"><a href="#s12">07. 무엇이 달랐나</a></div><div class="toc-item toc-l1"><a href="#s16">맺음말</a></div><div class="toc-item toc-l1"><a href="#s17">부록 A. 사용한 MCP 도구 목록</a></div><div class="toc-item toc-l1"><a href="#s18">부록 B. 타임라인</a></div><div class="toc-item toc-l1"><a href="#s19">부록 C. 재발 시 조치 요약 (레시피)</a></div></nav>
 <p><strong>Case Study · Agentic AI × ADT MCP × ST22 Dump Analysis</strong></p>
 <p>Agentic AI · MCP (ABAP ADT) · ST22 · DBSQL_REDIRECT_INCONSISTENCY · CO-OM-CCA (KSU5) · Compatibility View · CI_COBL · S/4HANA (Release 758)</p>
