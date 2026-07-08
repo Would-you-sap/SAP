@@ -172,6 +172,14 @@
   .doc .series-banner .series-body > :first-child{margin-top:0}
   .doc .series-banner .series-body > :last-child{margin-bottom:0}
   .doc .series-banner a{font-weight:700}
+  /* 클릭 확대 라이트박스 */
+  .doc img,.doc figure svg{cursor:zoom-in}
+  .lb{position:fixed;inset:0;background:rgba(15,20,28,.88);display:none;align-items:center;justify-content:center;z-index:9999;padding:3vh 3vw;cursor:zoom-out;-webkit-tap-highlight-color:transparent}
+  .lb.open{display:flex}
+  .lb-inner{display:flex;align-items:center;justify-content:center}
+  .lb-inner img{max-width:96vw;max-height:94vh;width:auto;height:auto;background:#fff;border-radius:8px;box-shadow:0 24px 70px -24px rgba(0,0,0,.7)}
+  .lb-inner svg{width:96vw;max-width:1240px;height:auto;background:#fff;border-radius:8px;padding:1rem;box-shadow:0 24px 70px -24px rgba(0,0,0,.7)}
+  .lb-hint{position:fixed;top:16px;right:20px;color:rgba(255,255,255,.75);font-size:13px;font-family:var(--mono)}
 </style>
 </head>
 <body>
@@ -791,6 +799,9 @@ try{ if(window.Prism){ Prism.highlightAll(); } }catch(e){}
 </script>
 <script>
 (function(){document.querySelectorAll('main.doc pre.code').forEach(function(pre){var b=document.createElement('button');b.className='copy-btn';b.type='button';b.textContent='복사';b.addEventListener('click',function(){var c=pre.querySelector('code');navigator.clipboard.writeText(c?c.innerText:pre.innerText).then(function(){b.textContent='복사됨';b.classList.add('done');setTimeout(function(){b.textContent='복사';b.classList.remove('done');},1400);});});pre.appendChild(b);});})();
+</script>
+<script>
+(function(){var lb=document.createElement('div');lb.className='lb';lb.setAttribute('aria-hidden','true');lb.innerHTML='<span class="lb-hint">✕ 닫기 (Esc)</span><div class="lb-inner"></div>';document.body.appendChild(lb);var inner=lb.querySelector('.lb-inner');function open(node){inner.innerHTML='';inner.appendChild(node);lb.classList.add('open');document.body.style.overflow='hidden';}function close(){lb.classList.remove('open');inner.innerHTML='';document.body.style.overflow='';}lb.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});document.querySelectorAll('main.doc img').forEach(function(img){img.addEventListener('click',function(){var c=new Image();c.src=img.currentSrc||img.src;c.alt=img.alt||'';open(c);});});document.querySelectorAll('main.doc figure svg').forEach(function(svg){svg.addEventListener('click',function(){var c=svg.cloneNode(true);c.removeAttribute('style');open(c);});});})();
 </script>
 </body>
 </html>
