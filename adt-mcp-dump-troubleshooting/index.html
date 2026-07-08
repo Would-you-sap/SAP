@@ -155,18 +155,16 @@
   .doc p.verdict{margin:1.5rem auto;padding:.75rem 1.15rem;background:var(--accent-wash);border:1px solid #CFE0F2;border-left:4px solid var(--accent);border-radius:10px;font-weight:750;color:var(--accent-deep);font-size:16px;letter-spacing:-.01em}
   .doc p.verdict code{background:#fff;color:var(--accent-deep)}
   .doc p.verdict strong{color:var(--accent-deep)}
-  /* AI 응답 메시지 박스 */
-  .doc .ai-msg{margin:1.6rem auto;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 14px 38px -22px rgba(16,24,40,.42)}
-  .doc .ai-msg-head{display:flex;align-items:center;gap:.55rem;padding:.6rem 1.15rem;background:linear-gradient(180deg,#F1F6FC,#E7F0F9);border-bottom:1px solid var(--line)}
-  .doc .ai-msg-head .ai-av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:var(--mono);flex:none}
-  .doc .ai-msg-title{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--accent-deep);letter-spacing:.01em}
-  .doc .ai-msg-body{padding:1.1rem 1.3rem}
-  .doc .ai-msg-body > :first-child{margin-top:0}
-  .doc .ai-msg-body > :last-child{margin-bottom:0}
-  .doc .ai-msg-body p{margin:.65rem auto;font-size:15px}
-  .doc .ai-msg-body table{font-size:13.5px;margin:.7rem auto}
-  .doc .ai-msg-body ol,.doc .ai-msg-body ul{margin:.5rem auto .5rem 1.3rem}
-  .doc .ai-msg-body li{margin:.3rem auto}
+  /* AI 리치 말풍선(표·목록 포함하는 넓은 AI 메시지) */
+  .doc .cl-bubble.cl-rich{max-width:100%;background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px;padding:.9rem 1.1rem}
+  .doc .cl-bubble.cl-rich > :first-child{margin-top:0}
+  .doc .cl-bubble.cl-rich > :last-child{margin-bottom:0}
+  .doc .cl-bubble.cl-rich p{margin:.6rem auto;font-size:14.5px;color:#232830}
+  .doc .cl-bubble.cl-rich strong{color:var(--accent-deep)}
+  .doc .cl-bubble.cl-rich table{font-size:13px;margin:.7rem auto}
+  .doc .cl-bubble.cl-rich ol,.doc .cl-bubble.cl-rich ul{margin:.5rem auto .5rem 1.3rem}
+  .doc .cl-bubble.cl-rich li{margin:.3rem auto;font-size:14px}
+  .doc .cl-bubble.cl-rich em{color:var(--ink-faint);font-size:12.5px}
 </style>
 </head>
 <body>
@@ -393,7 +391,51 @@ Financial accounting programs have been generated successfully
 <hr>
 <h2 id="s7">05. 올바른 도구 찾기</h2>
 <p><strong>한 줄 요약</strong> · <em>웹 검색으로 후보를 찾고, 시스템 검색으로 존재를 확인하고, 소스 리딩으로 파라미터의 의미까지 파악한 뒤에 실행을 요청했다.</em></p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 정답 도구를 짚다</span></div><div class="cl-body"><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;재검증에서 확인했듯 RGZZGLUX로는 불일치가 해소되지 않았습니다 — 그 도구가 재생성한 범위는 FI-SL 프로그램·코딩블록 서브스크린·ACDOCA 측 include까지라, <strong>CO 호환성 뷰(V_COEP)는 처리 범위 밖</strong>이었거든요. <code>//&lt;$FIELDS&gt;</code>가 여전히 비어 있습니다.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;그래서 올바른 도구를 직접 찾아뒀습니다. 정답은 패키지 <code>FINS_CO_UTIL</code>의 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 입니다 — <code>CI_COBL</code> 고객 필드를 읽어 V_COEP의 <code>&lt;$FIELDS&gt;</code> 자리에 주입·활성화하죠. <code>SE38</code>에서 실행 후 알려주시면 V_COEP 활성 버전을 재스캔해 ZZ 필드 17개 주입을 검증하고, KSU5 재실행으로 넘어가겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>WebSearch</code>(동일 증상 사례 교차 확인) → <code>SearchObject(&#39;FCO_CDS*&#39;)</code>로 <code>FINS_CO_UTIL</code>의 4형제 확인 → <code>GetProgram</code>으로 <code>no_check</code> 의미까지 소스로 파악. 웹 + 도구 5종.</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 정답 도구를 짚다</span></div><div class="cl-body"><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent cl-rich"><p><strong>검증 결과: RGZZGLUX로는 해소되지 않았습니다 → 올바른 도구는 <code>FCO_CDS_VIEW_GENERATE</code></strong></p>
+<p><strong>현재 상태.</strong> RGZZGLUX 실행 후 V_COEP 활성 버전을 다시 스캔했지만, <code>//&lt;$FIELDS&gt;</code> 플레이스홀더는 여전히 비어 있습니다 — <code>CI_COBL</code>의 ZZ 필드 17개가 주입되지 않았고 불일치는 그대로입니다. 로그를 보면 RGZZGLUX는 FI-SL 프로그램·코딩블록 서브스크린·<code>ACDOC_SI_NUM_CHAR_CUST_GEN</code>(ACDOCA 측 고객필드 include)까지만 재생성했고, CO 호환성 뷰(V_COEP)는 처리 범위 밖입니다.</p>
+<p><strong>올바른 해결 도구</strong> (시스템에 존재 확인 완료) — CO 호환성 뷰 재생성 전용 유틸리티가 s4h 시스템 패키지 <code>FINS_CO_UTIL</code>에 있습니다:</p>
+<table>
+<thead>
+<tr>
+<th>프로그램</th>
+<th>설명</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FCO_CDS_VIEW_GENERATE</code></td>
+<td>sFIN: Generation of CDS Views</td>
+<td>CO 호환성 뷰 전체 재생성 — 권장</td>
+</tr>
+<tr>
+<td><code>FCO_CDS_VIEW_REPAIR</code></td>
+<td>sFIN: Repair single CDS View</td>
+<td>V_COEP 단건만 수리할 때</td>
+</tr>
+<tr>
+<td><code>FCO_CDS_VIEW_RESET</code></td>
+<td>sFIN: Reset of CDS Views</td>
+<td>뷰를 초기 상태로 리셋 (필드 제거용)</td>
+</tr>
+</tbody></table>
+<p>이 프로그램이 <code>CI_COBL</code> 고객 필드를 읽어 V_COEP 등 CO 호환성 뷰의 <code>&lt;$FIELDS&gt;</code>/<code>&lt;$FIELDSAPP&gt;</code> 자리에 주입하고 활성화합니다. SAP 커뮤니티에서도 CI_COBL 확장 후 발생하는 동일 증상(COEP vs V_COEP 컬럼 수 불일치)의 해법으로 확인됩니다.</p>
+<p><strong>실행 순서</strong></p>
+<ol>
+<li><code>SE38</code> → <code>FCO_CDS_VIEW_GENERATE</code> 실행 (RGZZGLUX가 ACDOCA 측 include를 방금 재생성해 두었으므로 순서상 지금 실행하면 됩니다)</li>
+<li>실행 후 저에게 알려주시면 V_COEP 활성 버전을 재스캔해서 ZZ 필드 17개 주입 여부를 검증해 드리겠습니다</li>
+<li>검증 통과 후 <code>KSU5</code> 재실행 (사이클 A000WNACT2 — 실패한 역분개 문서 0300010300부터)</li>
+</ol>
+<p><strong>참고</strong> · 유사 사례에서 SAP Note 2686694(MSEG 사례 How-To), 2569265(클라이언트 복사 중 동일 덤프), 2178099(COEP/COEJ 필드 누락)가 언급됩니다.</p>
+<p><strong>Sources</strong></p>
+<ul>
+<li>S/4HANA Extend BSEG from CI_COBL encounter error — SAP Community</li>
+<li>Problem extending ACDOCA — SAP Community</li>
+<li>DBSQL_REDIRECT_INCONSISTENCY — TCodeSearch</li>
+<li>SAP KBA 2569265 — Dump DBSQL_REDIRECT_INCONSISTENCY during Client Copy</li>
+<li>SAP KBA 2178099 — ERKRS/CE4KEY fields missing from COEP/COEJ</li>
+</ul>
+<p><em>🔧 탐색: 웹 검색 · 사용 도구 5종 (WebSearch · SearchObject · GetProgram 등)</em></p>
+</div></div></div></div>
 <p>세 갈래 탐색을 병렬로 돌렸다.</p>
 <ol>
 <li><strong>WebSearch</strong> — <code>DBSQL_REDIRECT_INCONSISTENCY COEP V_COEP CI_COBL</code> 검색. SAP 커뮤니티의 동일 증상 사례(BSEG/ACDOCA 확장 계열)에서 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 리포트가 해법으로 등장.</li>
