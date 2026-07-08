@@ -124,6 +124,31 @@
   .doc p:has(> img):only-child{text-align:center}
   .doc ul:has(> li.chk){list-style:none;padding-left:1.7rem;margin-top:.5rem;margin-left:0}
   .doc li.chk{list-style:none;margin:.4rem 0}
+  /* 💬 세션 로그 채팅 UI */
+  .doc .chatlog{margin:1.6rem auto;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 12px 34px -20px rgba(16,24,40,.4)}
+  .doc .cl-head{display:flex;align-items:center;gap:.7rem;padding:.55rem .95rem;background:linear-gradient(180deg,#F7F9FC,#EDF1F7);border-bottom:1px solid var(--line)}
+  .doc .cl-dots{display:flex;gap:6px}
+  .doc .cl-dots i{width:11px;height:11px;border-radius:50%;display:block}
+  .doc .cl-dots i:nth-child(1){background:#FF5F57}.doc .cl-dots i:nth-child(2){background:#FEBC2E}.doc .cl-dots i:nth-child(3){background:#28C840}
+  .doc .cl-title{font-family:var(--mono);font-size:13px;font-weight:700;color:#2C3340}
+  .doc .cl-body{padding:1rem 1.05rem;display:flex;flex-direction:column;gap:.7rem;background:#FBFCFE}
+  .doc .cl-row{display:flex;gap:.5rem;align-items:flex-end}
+  .doc .cl-row.agent{justify-content:flex-start}
+  .doc .cl-row.user{flex-direction:row-reverse}
+  .doc .cl-av{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:var(--mono)}
+  .doc .cl-av.agent{background:#E7ECF6;color:var(--accent-deep)}
+  .doc .cl-av.user{background:var(--accent);color:#fff}
+  .doc .cl-bubble{max-width:76%;padding:.6rem .85rem;border-radius:14px;font-size:14.5px;line-height:1.6}
+  .doc .cl-bubble.agent{background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px;color:#232830}
+  .doc .cl-bubble.user{background:var(--accent);color:#fff;border-bottom-right-radius:5px}
+  .doc .cl-bubble code{font-family:var(--mono);font-size:.88em;background:var(--accent-wash);color:var(--accent-deep);padding:.05em .35em;border-radius:4px}
+  .doc .cl-bubble.user code{background:rgba(255,255,255,.22);color:#fff}
+  .doc .cl-att{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:600;background:rgba(255,255,255,.22);padding:1px 8px;border-radius:20px;margin-right:.35rem}
+  .doc .cl-bubble.agent .cl-att{background:var(--accent-wash);color:var(--accent-deep)}
+  .doc .cl-act{margin-top:.1rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;padding:.6rem .85rem;background:#0F1B2D;border-radius:10px;color:#D4DEEC;font-size:13.5px;line-height:1.55}
+  .doc .cl-act-tag{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:#7FE0A3;letter-spacing:.02em}
+  .doc .cl-act-body{flex:1;min-width:12rem}
+  .doc .cl-act code{font-family:var(--mono);font-size:.9em;background:rgba(255,255,255,.1);color:#9FE7FF;padding:.05em .35em;border-radius:4px}
 </style>
 </head>
 <body>
@@ -159,6 +184,7 @@
 <p>&quot;MCP로 s4h 서버에 접속해서, ST22에 존재하는 덤프가 있는지 확인하고 가장 최근 덤프 log를 분석해서 리포트 해주세요. (원인 파악 및 솔루션)&quot;</p>
 </blockquote>
 <p>이후 벌어진 일을 시간 순서대로 기록한다. 결론부터 말하면 — 원인 특정, 오답 걸러내기, 정답 도구 발견, 사후 검증까지 전부 MCP 위에서 이뤄졌고, 사람이 한 일은 GUI에서 버튼을 누르고 그 결과(스크린샷·로그 파일)를 에이전트에게 되돌려준 것뿐이다.</p>
+<p>본문 곳곳의 <strong>💬 세션 로그</strong> 블록은 실제 세션에서 오간 메시지의 발췌다. 어떤 대화가 어떤 SAP 동작으로 이어졌는지, 시나리오처럼 따라갈 수 있다.</p>
 <hr>
 <h2 id="s2">요약</h2>
 <ul>
@@ -169,6 +195,7 @@
 <hr>
 <h2 id="s3">01. 증상</h2>
 <p><strong>한 줄 요약</strong> · <em>덤프 목록 한 번의 조회로 &quot;일시적 오류&quot;가 아니라 &quot;재현되는 구조적 문제&quot;임이 드러났다.</em></p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 1 — 시작</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;MCP로 s4h 서버에 접속해서, ST22에 존재하는 덤프가 있는지 확인하고 가장 최근 덤프 log를 분석해서 리포트 해주세요. (원인 파악 및 솔루션)&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;SAP MCP 서버의 덤프 분석 도구를 로드한 후, s4h 시스템의 ST22 덤프를 조회하겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body">덤프 도구 3종 로드 → <code>RuntimeListDumps</code> (ADT REST 피드 조회). GUI 로그인 없음.</span></div></div></div>
 <p>첫 도구 호출은 <code>RuntimeListDumps</code> — ST22를 여는 대신 ADT REST 피드로 덤프 목록을 가져온다. 최근 10건의 그림이 바로 나왔다.</p>
 <table>
 <thead>
@@ -232,6 +259,7 @@
 <h2 id="s4">02. 덤프 해부</h2>
 <p><strong>한 줄 요약</strong> · <em>284,770자짜리 덤프 전문은 서브에이전트에게 통째로 맡기고, 메인 세션은 결론만 받았다.</em></p>
 <p><code>RuntimeAnalyzeDump</code>로 최신 덤프의 포맷된 전문을 가져오니 <strong>284KB</strong>. 사람이 ST22에서 스크롤로 읽는 그 분량이다. 메인 대화의 컨텍스트를 아끼기 위해 파일로 저장한 뒤 <strong>서브에이전트</strong>를 띄워 전문을 통독시키고, 구조화된 리포트만 돌려받았다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 2 — 7분의 기다림</span></div><div class="cl-body"><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;서브에이전트가 덤프 로그 전문을 분석 중입니다. 완료되면 원인 및 솔루션 리포트를 정리해 드리겠습니다.&quot;</div></div><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;이렇게 오래 걸릴 게 아닌 거 같은데 이슈사항이 있나요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">(상태 확인 후) &quot;오류는 없고, 284KB짜리 초장문 덤프 텍스트를 통독하는 데 시간이 걸리는 중입니다. 기다리는 동안 제가 직접 핵심 섹션만 타겟 추출해서 먼저 결과를 확인해 보겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body">서브에이전트가 전문을 통독하는 동안, 메인 세션이 병렬로 Error analysis / How to correct 구간을 직접 슬라이싱. 잠시 후 백그라운드 분석 완료(7m 34s) — 두 경로의 결론이 일치.</span></div></div></div>
 <p>핵심 섹션은 세 곳이었다.</p>
 <p><strong>(1) Error analysis — 원인 문장.</strong> 덤프가 원인을 문장으로 말해주고 있었다.</p>
 <blockquote>
@@ -338,6 +366,7 @@ Financial accounting programs have been generated successfully
 </code></pre>
 <p><img src="img/05-rgzzglux-log.png" alt="RGZZGLUX 실행 로그">
 <strong>그림 4 · 05-rgzzglux-log</strong> — RGZZGLUX 실행 로그. 전 항목 성공이지만, CO 호환성 뷰는 처리 목록에 없다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 성공 로그를 의심하다</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user"><span class="cl-att">📎 RGZZGLUX 로그 파일 첨부</span> &quot;실행 결과입니다.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;RGZZGLUX 자체는 정상 종료됐네요. 다만 로그에 V_COEP 같은 호환성 뷰 재생성 항목이 보이지 않으므로, 실제로 불일치가 해소됐는지 V_COEP 활성 버전을 다시 스캔해서 검증하겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetView(&#39;V_COEP&#39;)</code> 재조회 → <strong>&quot;문제가 아직 해소되지 않았습니다&quot;</strong> 판정.</span></div></div></div>
 <p>여기서 멈췄다면 &quot;조치 완료&quot;로 오판했을 것이다. 그러나 에이전트는 곧바로 <code>GetView(&#39;V_COEP&#39;)</code>를 다시 호출했고 — <strong><code>//&lt;$FIELDS&gt;</code>는 여전히 비어 있었다.</strong></p>
 <p>로그를 다시 읽어보면 이유가 보인다. RGZZGLUX가 만진 것은 FI-SL 프로그램, 코딩블록 서브스크린, ACDOCA 쪽 include(<code>ACDOC_SI_NUM_CHAR_CUST_GEN</code>)까지다. <strong>CO 호환성 뷰(V_COEP)는 처리 범위 밖</strong>이었다.</p>
 <blockquote>
@@ -392,7 +421,8 @@ cl_fco_cds_view_generator=&gt;generate_coep(
             iv_no_check = no_check   &quot;note 2502634
   ... ).
 </code></pre>
-<p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다. 사용자가 SE38 화면을 캡처해 &quot;이 화면인데 뭘 체크하죠?&quot;라고 물었을 때, 에이전트는 추측이 아니라 방금 읽은 소스로 답할 수 있었다.</p>
+<p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 화면보다 소스</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user"><span class="cl-att">📎 SE38 선택화면 캡처 첨부</span> &quot;FCO_CDS_VIEW_GENERATE 화면입니다.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;체크박스의 정확한 의미를 확인하기 위해 프로그램 소스를 읽어보겠습니다.&quot; → (소스 확인 후) &quot;&#39;No Check&#39; 체크박스는 비운 채로 그대로 실행(F8)하시면 됩니다. 로그에 점검 단계 오류로 생성이 중단됐다고 나오면 그때 체크하고 재실행하세요.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetProgram(&#39;FCO_CDS_VIEW_GENERATE&#39;)</code> — 추측이 아니라 방금 읽은 소스로 답했다.</span></div></div></div>
 <p><img src="img/06-fco-generate-selscreen.png" alt="FCO_CDS_VIEW_GENERATE 선택화면">
 <strong>그림 5 · 06-fco-generate-selscreen</strong> — FCO_CDS_VIEW_GENERATE 선택화면. 화면에 보이는 것은 &quot;No Check&quot; 체크박스 하나뿐이지만, 그 의미는 소스를 읽어야 알 수 있다.</p>
 <hr>
@@ -429,6 +459,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <strong>그림 8 · 09-ksu5-initial-screen</strong> — KSU5 초기 화면. 관리회계영역 A000, 7기간/2026, 사이클 WNACT2(시작일 2026.01.01), Test Run 체크 상태.</p>
 <p><img src="img/10-cockpit-empty.png" alt="빈 Allocation Cockpit">
 <strong>그림 9 · 10-cockpit-empty</strong> — 테스트 런 직후의 Allocation Cockpit. 실행 건이 하나도 표시되지 않아 실패처럼 보이지만, 원인 규명 결과 정상 동작이었다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 5 — 가짜 실패</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user"><span class="cl-att">📎 빈 Cockpit 캡처 첨부</span> &quot;실행했습니다. 화면에 아무런 값이 없습니다. … 테스트 런 빼고 해볼까요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;테스트 런 없이 실행하기 전에, 방금 실행에서 덤프가 또 발생했는지 먼저 확인해 보겠습니다. 그게 판단 기준이 됩니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>RuntimeListDumps</code> + <code>GetSqlQuery</code>(COBK) → &quot;네, <strong>테스트 런을 빼고 실제 실행하시면 됩니다.</strong> 빈 화면은 오류가 아니라 정상 동작입니다.&quot;</span></div></div></div>
 <ul>
 <li><code>RuntimeListDumps(user=WONIES)</code> → <strong>새 덤프 없음.</strong> 수정은 유효하다.</li>
 <li><code>GetSqlQuery</code>로 COBK 조회 → 문서 <strong>0300010300</strong>이 <strong>역분개되지 않은 활성 상태</strong>(STOKZ/STFLG 공백)로 남아 있음을 확인.</li>
@@ -438,6 +469,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <p>테스트 런 체크를 해제하고 실제 실행. Cockpit에 초록 불이 들어왔다 (2026.07.08 10:58:04). 마지막으로 세 가지를 재확인했다.</p>
 <p><img src="img/11-cockpit-success.png" alt="Allocation Cockpit 성공">
 <strong>그림 10 · 11-cockpit-success</strong> — 실제 실행 후의 Allocation Cockpit. Cycle WNACT2 — Period 2026.007 아래 초록 상태의 실행 건이 표시됐다. 7/6 이후 처음으로 완주한 실행이다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 6 — 클로즈</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user"><span class="cl-att">📎 초록 Cockpit 캡처 첨부</span> &quot;완료되었습니다.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;실행이 초록 상태로 완료되었네요. 최종 확인으로 ST22 신규 덤프 여부와 문서 상태를 검증하겠습니다.&quot; → &quot;모든 검증이 완료되었습니다. <strong>이슈 클로즈.</strong>&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetSqlQuery</code>(COBK — 역분개·신규 문서 확인) + <code>RuntimeListDumps</code>(재발 확인).</span></div></div></div>
 <table>
 <thead>
 <tr>
