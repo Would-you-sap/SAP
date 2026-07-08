@@ -356,7 +356,7 @@
 </code></pre>
 <p>조합하면: <strong>KSU5로 배부 사이클 A000WNACT2(세그먼트 &quot;가구 본사비 실적 배부&quot;)를 재실행 → 기존 CO 문서 0300010300의 역분개 단계 → COEP 읽기에서 덤프.</strong> 예외 객체의 <code>ENTITY=COEP / REDIRECT=V_COEP</code>, 커널 함수 <code>checkRedirection</code>(dbi_ast_symbol_table.cpp:1616), <code>SQLCODE=0</code>까지 확인 — DB 오류가 아니라 <strong>순수 DDIC 메타데이터 불일치</strong>라는 뜻이다.</p>
 <blockquote>
-<p><strong>여기서 배경 지식 하나.</strong> S/4HANA에서 CO 개별항목의 실적 데이터는 ACDOCA로 통합됐고, 레거시 코드가 COEP를 읽으면 커널이 이를 호환성 뷰 V_COEP로 자동 리다이렉트한다. 이 리다이렉트 시점마다 커널이 테이블과 뷰의 필드 정의를 비교하는데, 하나라도 어긋나면 이 덤프가 난다.</p>
+<p><strong>여기서 배경 지식 하나.</strong> S/4HANA에서 CO 개별항목의 실적 데이터는 ACDOCA로 통합됐고, 레거시 코드가 COEP를 읽으면 커널이 그 읽기를 자동으로 호환성 뷰 V_COEP로 돌린다(리다이렉트). 이 리다이렉트 시점마다 커널이 테이블과 뷰의 필드 정의를 비교하는데, 하나라도 어긋나면 이 덤프가 난다.</p>
 </blockquote>
 <hr>
 <h2 id="s6">03. DDIC 스캔</h2>
