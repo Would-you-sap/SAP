@@ -221,7 +221,7 @@
 <blockquote>
 <p><strong>MCP가 처음이라면.</strong> 이 사례를 읽는 데 필요한 배경만 짧게 짚고 간다.</p>
 </blockquote>
-<p><strong>MCP(Model Context Protocol)</strong> 는 AI가 외부 시스템의 &#39;도구&#39;를 표준 방식으로 호출하게 해주는 규약이다 — Anthropic이 2024년 말 공개한 <strong>JSON-RPC 기반 표준</strong>으로, 한 번 만든 MCP 서버는 Claude Code·Cursor·Copilot 등 <strong>여러 클라이언트에서 그대로 재사용</strong>된다. 구성은 <strong>Host(AI 앱 · Claude Code) + LLM + MCP 클라이언트 + MCP 서버</strong>(서버가 노출하는 건 주로 LLM이 호출하는 함수인 <strong>Tool</strong>). LLM이 &quot;이 도구를 이 인자로 써 줘&quot;(<code>tool_use</code>)라고 하면 클라이언트가 서버를 호출하고, 그 결과(<code>tool_result</code>)를 다시 LLM에 주입한다. 큰 흐름은 <strong>요청 → LLM이 도구 선택(<code>tool_use</code>) → MCP 클라이언트·서버가 ADT REST 호출 → SAP 응답 → <code>tool_result</code> 주입 → LLM 자연어 응답</strong>이다.</p>
+<p><strong>MCP(Model Context Protocol)</strong> 는 AI가 외부 시스템의 &#39;도구&#39;를 표준 방식으로 호출하게 해주는 규약이다 — Anthropic이 2024년 말 공개한 <strong>JSON-RPC 기반 표준</strong>으로, 한 번 만든 MCP 서버는 Claude Code·Cursor·Copilot 등 <strong>여러 클라이언트에서 그대로 재사용</strong>된다. 구성은 <strong>Host(AI 앱 · Claude Code) + LLM + MCP 클라이언트 + MCP 서버</strong>(서버가 제공하는 건 주로 LLM이 호출하는 함수인 <strong>Tool</strong>(도구)). LLM이 &quot;이 도구를 이 인자로 써 줘&quot;(<code>tool_use</code>)라고 하면 클라이언트가 서버를 호출하고, 그 결과(<code>tool_result</code>)를 다시 LLM에 주입한다. 큰 흐름은 <strong>요청 → LLM이 도구 선택(<code>tool_use</code>) → MCP 클라이언트·서버가 ADT REST 호출 → SAP 응답 → <code>tool_result</code> 주입 → LLM 자연어 응답</strong>이다.</p>
 <figure style="margin:1.6rem auto;overflow-x:auto"><svg viewBox="0 0 1200 730" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MCP와 ADT 통신 시퀀스 — 덤프 조회 한 번의 11단계 흐름" style="width:100%;min-width:720px;height:auto;display:block" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif"><defs><marker id="mH" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#4A4A48"/></marker></defs><g stroke="#DBDBD8" stroke-width="1.2"><line x1="90" y1="94" x2="90" y2="650"/><line x1="285" y1="94" x2="285" y2="650"/><line x1="470" y1="94" x2="470" y2="650"/><line x1="630" y1="94" x2="630" y2="650"/><line x1="830" y1="94" x2="830" y2="650"/><line x1="1095" y1="94" x2="1095" y2="650"/></g><g font-size="13" font-weight="600" fill="#37352F" text-anchor="middle"><rect x="44" y="46" width="92" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="90" y="74">사용자</text><rect x="204" y="46" width="162" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="285" y="74">Host (Claude Code)</text><rect x="428" y="46" width="84" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="470" y="74">LLM</text><rect x="562" y="46" width="136" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="630" y="74" font-size="12.5">MCP 클라이언트</text><rect x="748" y="46" width="164" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="830" y="74" font-size="12.5">ADT MCP 서버</text><rect x="1035" y="46" width="120" height="46" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="1095" y="74">SAP (ADT)</text><rect x="44" y="652" width="92" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="90" y="679">사용자</text><rect x="204" y="652" width="162" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="285" y="679">Host (Claude Code)</text><rect x="428" y="652" width="84" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="470" y="679">LLM</text><rect x="562" y="652" width="136" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="630" y="679" font-size="12.5">MCP 클라이언트</text><rect x="748" y="652" width="164" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="830" y="679" font-size="12.5">ADT MCP 서버</text><rect x="1035" y="652" width="120" height="44" rx="7" fill="#F1F1EF" stroke="#E2E2DF"/><text x="1095" y="679">SAP (ADT)</text></g><g font-size="11.5" fill="#8A8A87"><line x1="46" y1="118" x2="74" y2="118" stroke="#4A4A48" stroke-width="1.8" marker-end="url(#mH)"/><text x="80" y="122">호출(요청)</text><line x1="176" y1="118" x2="204" y2="118" stroke="#4A4A48" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#mH)"/><text x="210" y="122">응답(반환)</text></g><g font-size="11.5" fill="#37352F" text-anchor="middle"><text x="187" y="150">"ST22 최근 덤프 분석해줘"</text><text x="377" y="192">프롬프트 + 가용 툴 카탈로그</text><text x="377" y="234" font-family="ui-monospace,Consolas,monospace" font-size="11">tool_use: RuntimeListDumps{…}</text><text x="457" y="277">툴 호출 위임</text><text x="730" y="319" font-family="ui-monospace,Consolas,monospace" font-size="11">JSON-RPC tools/call</text><text x="962" y="361" font-family="ui-monospace,Consolas,monospace" font-size="10.5">GET /sap/bc/adt/… (ADT REST)</text><text x="962" y="411">200 OK · 덤프 목록</text><text x="730" y="454" font-family="ui-monospace,Consolas,monospace" font-size="11">tool_result (dumps)</text><text x="550" y="497">tool_result 메시지 주입</text><text x="377" y="540">자연어 응답 ("최근 덤프는 DBSQL_REDIRECT…")</text><text x="187" y="583">화면 출력</text></g><g stroke="#4A4A48" stroke-width="1.7"><line x1="90" y1="158" x2="283" y2="158" marker-end="url(#mH)"/><line x1="285" y1="200" x2="468" y2="200" marker-end="url(#mH)"/><line x1="470" y1="242" x2="287" y2="242" stroke-dasharray="5,4" marker-end="url(#mH)"/><line x1="285" y1="285" x2="628" y2="285" marker-end="url(#mH)"/><line x1="630" y1="327" x2="828" y2="327" marker-end="url(#mH)"/><line x1="830" y1="369" x2="1093" y2="369" marker-end="url(#mH)"/><line x1="1095" y1="419" x2="832" y2="419" stroke-dasharray="5,4" marker-end="url(#mH)"/><line x1="830" y1="462" x2="632" y2="462" stroke-dasharray="5,4" marker-end="url(#mH)"/><line x1="630" y1="505" x2="472" y2="505" stroke-dasharray="5,4" marker-end="url(#mH)"/><line x1="470" y1="548" x2="287" y2="548" stroke-dasharray="5,4" marker-end="url(#mH)"/><line x1="285" y1="591" x2="92" y2="591" stroke-dasharray="5,4" marker-end="url(#mH)"/></g><g font-size="10.5" font-weight="700" fill="#fff" text-anchor="middle"><circle cx="90" cy="158" r="9" fill="#2E2D2B"/><text x="90" y="161.5">1</text><circle cx="285" cy="200" r="9" fill="#2E2D2B"/><text x="285" y="203.5">2</text><circle cx="470" cy="242" r="9" fill="#2E2D2B"/><text x="470" y="245.5">3</text><circle cx="285" cy="285" r="9" fill="#2E2D2B"/><text x="285" y="288.5">4</text><circle cx="630" cy="327" r="9" fill="#2E2D2B"/><text x="630" y="330.5">5</text><circle cx="830" cy="369" r="9" fill="#2E2D2B"/><text x="830" y="372.5">6</text><circle cx="1095" cy="419" r="9" fill="#2E2D2B"/><text x="1095" y="422.5">7</text><circle cx="830" cy="462" r="9" fill="#2E2D2B"/><text x="830" y="465.5">8</text><circle cx="630" cy="505" r="9" fill="#2E2D2B"/><text x="630" y="508.5">9</text><circle cx="470" cy="548" r="9" fill="#2E2D2B"/><text x="470" y="551.5">10</text><circle cx="285" cy="591" r="9" fill="#2E2D2B"/><text x="285" y="594.5">11</text></g><text x="600" y="716" text-anchor="middle" font-size="11.5" fill="#9A9A97">예시 — '덤프 조회' 한 번의 흐름. 실제 사례에선 이 tool_use↔tool_result 루프가 RuntimeListDumps · GetView · GetSqlQuery 등으로 반복된다.</text></svg><figcaption style="text-align:center;font-size:13px;color:#59627A;margin-top:.6rem"><b>그림 · MCP × ADT 통신 흐름</b> — '덤프 조회' 요청 한 번이 도는 11단계</figcaption></figure>
 
 <blockquote>
@@ -268,7 +268,7 @@
 <h2 id="s4">01. 증상</h2>
 <p><strong>한 줄 요약</strong> · <em>덤프 목록 한 번의 조회로 &quot;일시적 오류&quot;가 아니라 &quot;재현되는 구조적 문제&quot;임이 드러났다.</em></p>
 <div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 1 — 시작</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;MCP로 s4h 서버에 접속해서, ST22에 존재하는 덤프가 있는지 확인하고 가장 최근 덤프 log를 분석해서 리포트 해주세요. (원인 파악 및 솔루션)&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;SAP MCP 서버의 덤프 분석 도구를 로드한 후, s4h 시스템의 ST22 덤프를 조회하겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body">덤프 도구 3종 로드 → <code>RuntimeListDumps</code> (ADT REST 피드 조회). GUI 로그인 없음.</span></div></div></div>
-<p>첫 도구 호출은 <code>RuntimeListDumps</code> — ST22를 여는 대신 ADT REST 피드로 덤프 목록을 가져온다. 최근 10건의 그림이 바로 나왔다.</p>
+<p>첫 도구 호출은 <code>RuntimeListDumps</code> — ST22를 여는 대신 ADT REST 피드로 덤프 목록을 가져온다. 최근 10건이 바로 한눈에 들어왔다.</p>
 <table>
 <thead>
 <tr>
@@ -394,8 +394,7 @@ zz_biztype, zz_plnsmon, zz_plnemon          — 17개 필드
 </code></pre>
 <p><img src="img/04-ci-cobl-structure.png" alt="CI_COBL 구조">
 <strong>그림 3 · 04-ci-cobl-structure</strong> — SE11의 CI_COBL(코딩블록 고객 include). COEP에는 반영됐지만 뷰에는 없는 ZZ 필드 17개.</p>
-<p>이 17개가 <code>COEP_ONLY → include ci_cobl</code> 경로로 <strong>COEP의 정식 필드</strong>가 되어 있는데, V_COEP의 <code>&lt;$FIELDS&gt;</code> 자리는 비어 있다. <strong>COEP = 뷰보다 17개 필드 많음.</strong> 커널의 리다이렉트 정합성 체크가 실패할 수밖에 없는 구조다.</p>
-<p class="verdict">✅ <code>GetInactiveObjects()</code>는 0건 — &quot;활성화하다 만&quot; 상태가 아니라, <strong>코딩블록 확장(OXK3) 후 호환성 뷰 재생성이 아예 누락된</strong> 상태라는 판정까지 내려졌다.</p>
+<p>이 17개가 <code>COEP_ONLY → include ci_cobl</code> 경로로 <strong>COEP의 정식 필드</strong>가 되어 있는데, V_COEP의 <code>&lt;$FIELDS&gt;</code> 자리는 비어 있다. <strong>COEP = 뷰보다 17개 필드 많음.</strong> 커널의 리다이렉트 정합성 체크가 실패할 수밖에 없는 구조다. (<code>GetInactiveObjects()</code>도 0건 — &quot;활성화하다 만&quot; 상태가 아니었다.)</p>
 <table>
 <thead>
 <tr>
@@ -424,6 +423,7 @@ zz_biztype, zz_plnsmon, zz_plnemon          — 17개 필드
 <td>0건 (활성화 미완료 아님)</td>
 </tr>
 </tbody></table>
+<p class="verdict">✅ <strong>코딩블록 확장(OXK3) 후 호환성 뷰 재생성이 아예 누락된</strong> 상태 — 그것이 불일치의 정체였다.</p>
 <hr>
 <h2 id="s7">04. 1차 시도와 실패</h2>
 <p><strong>한 줄 요약</strong> · <em>&quot;실행했으니 됐겠지&quot;가 아니라, 실행 직후 같은 도구로 재검증했기에 오답임을 10분 만에 알았다.</em></p>
@@ -447,52 +447,7 @@ Financial accounting programs have been generated successfully
 <hr>
 <h2 id="s8">05. 올바른 도구 찾기</h2>
 <p><strong>한 줄 요약</strong> · <em>웹 검색으로 후보를 찾고, 시스템 검색으로 존재를 확인하고, 소스 리딩으로 파라미터의 의미까지 파악한 뒤에 실행을 요청했다.</em></p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 정답 도구를 짚다</span></div><div class="cl-body"><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent cl-rich"><p><strong>검증 결과: RGZZGLUX로는 해소되지 않았습니다 → 올바른 도구는 <code>FCO_CDS_VIEW_GENERATE</code></strong></p>
-<p><strong>현재 상태.</strong> RGZZGLUX 실행 후 V_COEP 활성 버전을 다시 스캔했지만, <code>//&lt;$FIELDS&gt;</code> 플레이스홀더는 여전히 비어 있습니다 — <code>CI_COBL</code>의 ZZ 필드 17개가 주입되지 않았고 불일치는 그대로입니다. 로그를 보면 RGZZGLUX는 FI-SL 프로그램·코딩블록 서브스크린·<code>ACDOC_SI_NUM_CHAR_CUST_GEN</code>(ACDOCA 측 고객필드 include)까지만 재생성했고, CO 호환성 뷰(V_COEP)는 처리 범위 밖입니다.</p>
-<p><strong>올바른 해결 도구</strong> (시스템에 존재 확인 완료) — CO 호환성 뷰 재생성 전용 유틸리티가 s4h 시스템 패키지 <code>FINS_CO_UTIL</code>에 있습니다:</p>
-<table>
-<thead>
-<tr>
-<th>프로그램</th>
-<th>설명</th>
-<th>용도</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>FCO_CDS_VIEW_GENERATE</code></td>
-<td>sFIN: Generation of CDS Views</td>
-<td>CO 호환성 뷰 전체 재생성 — 권장</td>
-</tr>
-<tr>
-<td><code>FCO_CDS_VIEW_REPAIR</code></td>
-<td>sFIN: Repair single CDS View</td>
-<td>V_COEP 단건만 수리할 때</td>
-</tr>
-<tr>
-<td><code>FCO_CDS_VIEW_RESET</code></td>
-<td>sFIN: Reset of CDS Views</td>
-<td>뷰를 초기 상태로 리셋 (필드 제거용)</td>
-</tr>
-</tbody></table>
-<p>이 프로그램이 <code>CI_COBL</code> 고객 필드를 읽어 V_COEP 등 CO 호환성 뷰의 <code>&lt;$FIELDS&gt;</code>/<code>&lt;$FIELDSAPP&gt;</code> 자리에 주입하고 활성화합니다. SAP 커뮤니티에서도 CI_COBL 확장 후 발생하는 동일 증상(COEP vs V_COEP 컬럼 수 불일치)의 해법으로 확인됩니다.</p>
-<p><strong>실행 순서</strong></p>
-<ol>
-<li><code>SE38</code> → <code>FCO_CDS_VIEW_GENERATE</code> 실행 (RGZZGLUX가 ACDOCA 측 include를 방금 재생성해 두었으므로 순서상 지금 실행하면 됩니다)</li>
-<li>실행 후 저에게 알려주시면 V_COEP 활성 버전을 재스캔해서 ZZ 필드 17개 주입 여부를 검증해 드리겠습니다</li>
-<li>검증 통과 후 <code>KSU5</code> 재실행 (사이클 A000WNACT2 — 실패한 역분개 문서 0300010300부터)</li>
-</ol>
-<p><strong>참고</strong> · 유사 사례에서 SAP Note 2686694(MSEG 사례 How-To), 2569265(클라이언트 복사 중 동일 덤프), 2178099(COEP/COEJ 필드 누락)가 언급됩니다.</p>
-<p><strong>Sources</strong></p>
-<ul>
-<li>S/4HANA Extend BSEG from CI_COBL encounter error — SAP Community</li>
-<li>Problem extending ACDOCA — SAP Community</li>
-<li>DBSQL_REDIRECT_INCONSISTENCY — TCodeSearch</li>
-<li>SAP KBA 2569265 — Dump DBSQL_REDIRECT_INCONSISTENCY during Client Copy</li>
-<li>SAP KBA 2178099 — ERKRS/CE4KEY fields missing from COEP/COEJ</li>
-</ul>
-<p><em>🔧 탐색: 웹 검색 · 사용 도구 5종 (WebSearch · SearchObject · GetProgram 등)</em></p>
-</div></div></div></div>
-<p>세 갈래 탐색을 병렬로 돌렸다.</p>
+<p>RGZZGLUX가 미해소로 판정된 뒤, 에이전트는 정답 도구를 세 갈래 탐색으로 찾았다.</p>
 <ol>
 <li><strong>WebSearch</strong> — <code>DBSQL_REDIRECT_INCONSISTENCY COEP V_COEP CI_COBL</code> 검색. SAP 커뮤니티의 동일 증상 사례(BSEG/ACDOCA 확장 계열)에서 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 리포트가 해법으로 등장.</li>
 <li><strong>SearchObject</strong> — 실제 시스템에서 <code>FCO_CDS*</code> 패턴 검색. 패키지 <strong>FINS_CO_UTIL</strong>에 4형제가 존재함을 확인:</li>
@@ -538,6 +493,25 @@ cl_fco_cds_view_generator=&gt;generate_coep(
   ... ).
 </code></pre>
 <p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다.</p>
+<p>세 갈래를 종합해, 에이전트가 사용자에게 내놓은 가이드는 이랬다.</p>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 정답 도구를 짚다</span></div><div class="cl-body"><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent cl-rich"><p><strong>검증 결과: RGZZGLUX로는 해소되지 않았습니다 → 올바른 도구는 <code>FCO_CDS_VIEW_GENERATE</code></strong> (패키지 <code>FINS_CO_UTIL</code>).</p>
+<p>이 프로그램이 <code>CI_COBL</code> 고객 필드를 읽어 V_COEP 등 CO 호환성 뷰의 <code>&lt;$FIELDS&gt;</code>/<code>&lt;$FIELDSAPP&gt;</code> 자리에 주입·활성화합니다. SAP 커뮤니티에서도 CI_COBL 확장 후 발생하는 동일 증상(COEP vs V_COEP 컬럼 수 불일치)의 해법으로 확인됩니다.</p>
+<p><strong>실행 순서</strong></p>
+<ol>
+<li><code>SE38</code> → <code>FCO_CDS_VIEW_GENERATE</code> 실행 (RGZZGLUX가 ACDOCA 측 include를 방금 재생성해 두었으므로 순서상 지금 실행하면 됩니다)</li>
+<li>실행 후 저에게 알려주시면 V_COEP 활성 버전을 재스캔해서 ZZ 필드 17개 주입 여부를 검증해 드리겠습니다</li>
+<li>검증 통과 후 <code>KSU5</code> 재실행 (사이클 A000WNACT2 — 실패한 역분개 문서 0300010300부터)</li>
+</ol>
+<p><strong>참고</strong> · 유사 사례에서 SAP Note 2686694(MSEG 사례 How-To), 2569265(클라이언트 복사 중 동일 덤프), 2178099(COEP/COEJ 필드 누락)가 언급됩니다.</p>
+<p><strong>Sources</strong></p>
+<ul>
+<li>S/4HANA Extend BSEG from CI_COBL encounter error — SAP Community</li>
+<li>Problem extending ACDOCA — SAP Community</li>
+<li>DBSQL_REDIRECT_INCONSISTENCY — TCodeSearch</li>
+<li>SAP KBA 2569265 — Dump DBSQL_REDIRECT_INCONSISTENCY during Client Copy</li>
+<li>SAP KBA 2178099 — ERKRS/CE4KEY fields missing from COEP/COEJ</li>
+</ul>
+</div></div></div></div>
 <p><img src="img/06-fco-generate-selscreen.png" alt="FCO_CDS_VIEW_GENERATE 선택화면">
 <strong>그림 5 · 06-fco-generate-selscreen</strong> — FCO_CDS_VIEW_GENERATE 선택화면. 화면에 보이는 것은 &quot;No Check&quot; 체크박스 하나뿐이지만, 그 의미는 소스를 읽어야 알 수 있다.</p>
 <div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 화면보다 소스</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;FCO_CDS_VIEW_GENERATE 선택화면까지 왔습니다. 체크박스가 하나 있는데 뭘 선택해야 하나요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;체크박스의 정확한 의미를 확인하기 위해 프로그램 소스를 읽어보겠습니다.&quot; → (소스 확인 후) &quot;&#39;No Check&#39; 체크박스는 비운 채로 그대로 실행(F8)하시면 됩니다. 로그에 점검 단계 오류로 생성이 중단됐다고 나오면 그때 체크하고 재실행하세요.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetProgram(&#39;FCO_CDS_VIEW_GENERATE&#39;)</code> — 추측이 아니라 방금 읽은 소스로 답했다.</span></div></div></div>
