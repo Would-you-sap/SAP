@@ -149,10 +149,24 @@
   .doc .cl-act-tag{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:#7FE0A3;letter-spacing:.02em}
   .doc .cl-act-body{flex:1;min-width:12rem}
   .doc .cl-act code{font-family:var(--mono);font-size:.9em;background:rgba(255,255,255,.1);color:#9FE7FF;padding:.05em .35em;border-radius:4px}
+  .doc .cl-act strong{color:#F0F5FC}
+  .doc .cl-bubble.user strong{color:#fff}
   /* ✅ 단계 마무리/판정 강조 */
   .doc p.verdict{margin:1.5rem auto;padding:.75rem 1.15rem;background:var(--accent-wash);border:1px solid #CFE0F2;border-left:4px solid var(--accent);border-radius:10px;font-weight:750;color:var(--accent-deep);font-size:16px;letter-spacing:-.01em}
   .doc p.verdict code{background:#fff;color:var(--accent-deep)}
   .doc p.verdict strong{color:var(--accent-deep)}
+  /* AI 응답 메시지 박스 */
+  .doc .ai-msg{margin:1.6rem auto;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 14px 38px -22px rgba(16,24,40,.42)}
+  .doc .ai-msg-head{display:flex;align-items:center;gap:.55rem;padding:.6rem 1.15rem;background:linear-gradient(180deg,#F1F6FC,#E7F0F9);border-bottom:1px solid var(--line)}
+  .doc .ai-msg-head .ai-av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:var(--mono);flex:none}
+  .doc .ai-msg-title{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--accent-deep);letter-spacing:.01em}
+  .doc .ai-msg-body{padding:1.1rem 1.3rem}
+  .doc .ai-msg-body > :first-child{margin-top:0}
+  .doc .ai-msg-body > :last-child{margin-bottom:0}
+  .doc .ai-msg-body p{margin:.65rem auto;font-size:15px}
+  .doc .ai-msg-body table{font-size:13.5px;margin:.7rem auto}
+  .doc .ai-msg-body ol,.doc .ai-msg-body ul{margin:.5rem auto .5rem 1.3rem}
+  .doc .ai-msg-body li{margin:.3rem auto}
 </style>
 </head>
 <body>
@@ -379,7 +393,43 @@ Financial accounting programs have been generated successfully
 <hr>
 <h2 id="s7">05. 올바른 도구 찾기</h2>
 <p><strong>한 줄 요약</strong> · <em>웹 검색으로 후보를 찾고, 시스템 검색으로 존재를 확인하고, 소스 리딩으로 파라미터의 의미까지 파악한 뒤에 실행을 요청했다.</em></p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 정답 도구를 짚다</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;RGZZGLUX로는 안 되는 거군요. 그럼 올바른 도구는 뭔가요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;RGZZGLUX가 재생성한 범위는 FI-SL 프로그램·코딩블록 서브스크린·ACDOCA 측 include까지입니다. <strong>CO 호환성 뷰(V_COEP)는 처리 범위 밖</strong>이라 <code>//&lt;$FIELDS&gt;</code>가 여전히 비어 있는 것이죠.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;정답은 패키지 <code>FINS_CO_UTIL</code>의 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 입니다 — <code>CI_COBL</code> 고객 필드를 읽어 V_COEP의 <code>&lt;$FIELDS&gt;</code> 자리에 주입·활성화합니다. <code>SE38</code>에서 실행 후 알려주시면, V_COEP 활성 버전을 재스캔해 ZZ 필드 17개 주입을 검증하고 KSU5 재실행으로 넘어가겠습니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>WebSearch</code>(동일 증상 사례 교차 확인) → <code>SearchObject(&#39;FCO_CDS*&#39;)</code>로 <code>FINS_CO_UTIL</code>의 4형제 확인 → <code>GetProgram</code>으로 <code>no_check</code> 의미까지 소스로 파악. 웹 + 도구 5종.</span></div></div></div>
+<p>RGZZGLUX가 실패로 판정된 직후, &quot;그럼 올바른 도구는?&quot;이라는 물음에 에이전트가 내놓은 가이드는 이랬다.</p>
+<div class="ai-msg"><div class="ai-msg-head"><span class="ai-av">AI</span><span class="ai-msg-title">AI 응답 — 정답 도구 도출</span></div><div class="ai-msg-body"><p><strong>검증 결과 — RGZZGLUX로는 해소되지 않았습니다.</strong> 올바른 도구는 <code>FCO_CDS_VIEW_GENERATE</code> 입니다.</p>
+<p><strong>현재 상태.</strong> RGZZGLUX 실행 후 V_COEP 활성 버전을 재스캔했지만, <code>//&lt;$FIELDS&gt;</code> 플레이스홀더는 여전히 비어 있습니다 — <code>CI_COBL</code>의 ZZ 필드 17개가 주입되지 않았고 불일치는 그대로입니다. RGZZGLUX가 재생성한 범위는 FI-SL 프로그램·코딩블록 서브스크린·<code>ACDOC_SI_NUM_CHAR_CUST_GEN</code>(ACDOCA 측 고객필드 include)까지이고, <strong>CO 호환성 뷰(V_COEP)는 처리 범위 밖</strong>입니다.</p>
+<p><strong>올바른 해결 도구</strong> (시스템에 존재 확인 완료) — CO 호환성 뷰 재생성 전용 유틸리티가 s4h 시스템 패키지 <code>FINS_CO_UTIL</code>에 있습니다:</p>
+<table>
+<thead>
+<tr>
+<th>프로그램</th>
+<th>설명</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FCO_CDS_VIEW_GENERATE</code></td>
+<td>sFIN: Generation of CDS Views</td>
+<td>CO 호환성 뷰 전체 재생성 — <strong>권장</strong></td>
+</tr>
+<tr>
+<td><code>FCO_CDS_VIEW_REPAIR</code></td>
+<td>sFIN: Repair single CDS View</td>
+<td>V_COEP 단건만 수리할 때</td>
+</tr>
+<tr>
+<td><code>FCO_CDS_VIEW_RESET</code></td>
+<td>sFIN: Reset of CDS Views</td>
+<td>뷰를 초기 상태로 리셋 (필드 제거용)</td>
+</tr>
+</tbody></table>
+<p>이 프로그램이 <code>CI_COBL</code> 고객 필드를 읽어 V_COEP 등 CO 호환성 뷰의 <code>&lt;$FIELDS&gt;</code>/<code>&lt;$FIELDSAPP&gt;</code> 자리에 주입·활성화합니다. SAP 커뮤니티에서도 CI_COBL 확장 후 발생하는 동일 증상(COEP vs V_COEP 컬럼 수 불일치)의 해법으로 확인됩니다.</p>
+<p><strong>실행 순서</strong></p>
+<ol>
+<li><code>SE38</code> → <code>FCO_CDS_VIEW_GENERATE</code> 실행 (RGZZGLUX가 ACDOCA 측 include를 방금 재생성해 두었으므로 순서상 지금 실행하면 됩니다)</li>
+<li>실행 후 알려주시면 V_COEP 활성 버전을 재스캔해서 ZZ 필드 17개 주입 여부를 검증해 드리겠습니다</li>
+<li>검증 통과 후 <code>KSU5</code> 재실행 (사이클 A000WNACT2 — 실패한 역분개 문서 0300010300부터)</li>
+</ol>
+<p><strong>참고</strong> · 유사 사례에서 SAP Note 2686694(MSEG 사례 How-To), 2569265(클라이언트 복사 중 동일 덤프), 2178099(COEP/COEJ 필드 누락)가 언급됩니다.</p>
+</div></div>
 <p>세 갈래 탐색을 병렬로 돌렸다.</p>
 <ol>
 <li><strong>WebSearch</strong> — <code>DBSQL_REDIRECT_INCONSISTENCY COEP V_COEP CI_COBL</code> 검색. SAP 커뮤니티의 동일 증상 사례(BSEG/ACDOCA 확장 계열)에서 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 리포트가 해법으로 등장.</li>
@@ -426,7 +476,7 @@ cl_fco_cds_view_generator=&gt;generate_coep(
   ... ).
 </code></pre>
 <p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 화면보다 소스</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;FCO_CDS_VIEW_GENERATE 선택화면까지 왔습니다. 체크박스가 하나 있는데 뭘 선택해야 하나요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;체크박스의 정확한 의미를 확인하기 위해 프로그램 소스를 읽어보겠습니다.&quot; → (소스 확인 후) &quot;&#39;No Check&#39; 체크박스는 비운 채로 그대로 실행(F8)하시면 됩니다. 로그에 점검 단계 오류로 생성이 중단됐다고 나오면 그때 체크하고 재실행하세요.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetProgram(&#39;FCO_CDS_VIEW_GENERATE&#39;)</code> — 추측이 아니라 방금 읽은 소스로 답했다.</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 화면보다 소스</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;FCO_CDS_VIEW_GENERATE 선택화면까지 왔습니다. 체크박스가 하나 있는데 뭘 선택해야 하나요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;체크박스의 정확한 의미를 확인하기 위해 프로그램 소스를 읽어보겠습니다.&quot; → (소스 확인 후) &quot;&#39;No Check&#39; 체크박스는 비운 채로 그대로 실행(F8)하시면 됩니다. 로그에 점검 단계 오류로 생성이 중단됐다고 나오면 그때 체크하고 재실행하세요.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetProgram(&#39;FCO_CDS_VIEW_GENERATE&#39;)</code> — 추측이 아니라 방금 읽은 소스로 답했다.</span></div></div></div>
 <p><img src="img/06-fco-generate-selscreen.png" alt="FCO_CDS_VIEW_GENERATE 선택화면">
 <strong>그림 5 · 06-fco-generate-selscreen</strong> — FCO_CDS_VIEW_GENERATE 선택화면. 화면에 보이는 것은 &quot;No Check&quot; 체크박스 하나뿐이지만, 그 의미는 소스를 읽어야 알 수 있다.</p>
 <hr>
@@ -463,7 +513,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <strong>그림 8 · 09-ksu5-initial-screen</strong> — KSU5 초기 화면. 관리회계영역 A000, 7기간/2026, 사이클 WNACT2(시작일 2026.01.01), Test Run 체크 상태.</p>
 <p><img src="img/10-cockpit-empty.png" alt="빈 Allocation Cockpit">
 <strong>그림 9 · 10-cockpit-empty</strong> — 테스트 런 직후의 Allocation Cockpit. 실행 건이 하나도 표시되지 않아 실패처럼 보이지만, 원인 규명 결과 정상 동작이었다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 5 — 가짜 실패</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;테스트 런으로 실행했는데 Cockpit에 아무 값도 나오지 않습니다. 테스트 런을 빼고 해볼까요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;테스트 런 없이 실행하기 전에, 방금 실행에서 덤프가 또 발생했는지 먼저 확인해 보겠습니다. 그게 판단 기준이 됩니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>RuntimeListDumps</code> + <code>GetSqlQuery</code>(COBK) → &quot;네, <strong>테스트 런을 빼고 실제 실행하시면 됩니다.</strong> 빈 화면은 오류가 아니라 정상 동작입니다.&quot;</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 가짜 실패</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;테스트 런으로 실행했는데 Cockpit에 아무 값도 나오지 않습니다. 테스트 런을 빼고 해볼까요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;테스트 런 없이 실행하기 전에, 방금 실행에서 덤프가 또 발생했는지 먼저 확인해 보겠습니다. 그게 판단 기준이 됩니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>RuntimeListDumps</code> + <code>GetSqlQuery</code>(COBK) → &quot;네, <strong>테스트 런을 빼고 실제 실행하시면 됩니다.</strong> 빈 화면은 오류가 아니라 정상 동작입니다.&quot;</span></div></div></div>
 <ul>
 <li><code>RuntimeListDumps(user=WONIES)</code> → <strong>새 덤프 없음.</strong> 수정은 유효하다.</li>
 <li><code>GetSqlQuery</code>로 COBK 조회 → 문서 <strong>0300010300</strong>이 <strong>역분개되지 않은 활성 상태</strong>(STOKZ/STFLG 공백)로 남아 있음을 확인.</li>
@@ -473,7 +523,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <p>테스트 런 체크를 해제하고 실제 실행. Cockpit에 초록 불이 들어왔다 (2026.07.08 10:58:04). 마지막으로 세 가지를 재확인했다.</p>
 <p><img src="img/11-cockpit-success.png" alt="Allocation Cockpit 성공">
 <strong>그림 10 · 11-cockpit-success</strong> — 실제 실행 후의 Allocation Cockpit. Cycle WNACT2 — Period 2026.007 아래 초록 상태의 실행 건이 표시됐다. 7/6 이후 처음으로 완주한 실행이다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 6 — 클로즈</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;실제 실행을 완료했습니다. 최종 상태를 확인해 주세요.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;완료 보고 확인했습니다. 최종 검증으로 ST22 신규 덤프 여부와 문서 상태를 직접 조회하겠습니다.&quot; → &quot;모든 검증이 완료되었습니다. <strong>이슈 클로즈.</strong>&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetSqlQuery</code>(COBK — 역분개·신규 문서 확인) + <code>RuntimeListDumps</code>(재발 확인).</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 5 — 클로즈</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;실제 실행을 완료했습니다. 최종 상태를 확인해 주세요.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;완료 보고 확인했습니다. 최종 검증으로 ST22 신규 덤프 여부와 문서 상태를 직접 조회하겠습니다.&quot; → &quot;모든 검증이 완료되었습니다. <strong>이슈 클로즈.</strong>&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetSqlQuery</code>(COBK — 역분개·신규 문서 확인) + <code>RuntimeListDumps</code>(재발 확인).</span></div></div></div>
 <table>
 <thead>
 <tr>
