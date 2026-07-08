@@ -476,7 +476,11 @@ cl_fco_cds_view_generator=&gt;generate_coep(
   ... ).
 </code></pre>
 <p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 화면보다 소스</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;FCO_CDS_VIEW_GENERATE 선택화면까지 왔습니다. 체크박스가 하나 있는데 뭘 선택해야 하나요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;체크박스의 정확한 의미를 확인하기 위해 프로그램 소스를 읽어보겠습니다.&quot; → (소스 확인 후) &quot;&#39;No Check&#39; 체크박스는 비운 채로 그대로 실행(F8)하시면 됩니다. 로그에 점검 단계 오류로 생성이 중단됐다고 나오면 그때 체크하고 재실행하세요.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetProgram(&#39;FCO_CDS_VIEW_GENERATE&#39;)</code> — 추측이 아니라 방금 읽은 소스로 답했다.</span></div></div></div>
+<p>&quot;선택화면에 체크박스가 하나 있는데 뭘 선택해야 하냐&quot;는 물음에, 에이전트는 추측 대신 프로그램 소스를 읽고(<code>GetProgram</code>) 답했다.</p>
+<div class="ai-msg"><div class="ai-msg-head"><span class="ai-av">AI</span><span class="ai-msg-title">AI 응답 — 체크박스 판단</span></div><div class="ai-msg-body"><p><strong><code>No Check</code>는 비운 채로 그대로 실행(F8)하시면 됩니다.</strong></p>
+<p><code>FCO_CDS_VIEW_GENERATE</code> 소스를 확인하니, <code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그입니다 — 1차 실행은 체크 없이가 정석입니다.</p>
+<p>만약 로그에 점검 단계 오류로 생성이 중단됐다고 나오면, 그때 체크하고 재실행하세요.</p>
+</div></div>
 <p><img src="img/06-fco-generate-selscreen.png" alt="FCO_CDS_VIEW_GENERATE 선택화면">
 <strong>그림 5 · 06-fco-generate-selscreen</strong> — FCO_CDS_VIEW_GENERATE 선택화면. 화면에 보이는 것은 &quot;No Check&quot; 체크박스 하나뿐이지만, 그 의미는 소스를 읽어야 알 수 있다.</p>
 <hr>
@@ -513,7 +517,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <strong>그림 8 · 09-ksu5-initial-screen</strong> — KSU5 초기 화면. 관리회계영역 A000, 7기간/2026, 사이클 WNACT2(시작일 2026.01.01), Test Run 체크 상태.</p>
 <p><img src="img/10-cockpit-empty.png" alt="빈 Allocation Cockpit">
 <strong>그림 9 · 10-cockpit-empty</strong> — 테스트 런 직후의 Allocation Cockpit. 실행 건이 하나도 표시되지 않아 실패처럼 보이지만, 원인 규명 결과 정상 동작이었다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 가짜 실패</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;테스트 런으로 실행했는데 Cockpit에 아무 값도 나오지 않습니다. 테스트 런을 빼고 해볼까요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;테스트 런 없이 실행하기 전에, 방금 실행에서 덤프가 또 발생했는지 먼저 확인해 보겠습니다. 그게 판단 기준이 됩니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>RuntimeListDumps</code> + <code>GetSqlQuery</code>(COBK) → &quot;네, <strong>테스트 런을 빼고 실제 실행하시면 됩니다.</strong> 빈 화면은 오류가 아니라 정상 동작입니다.&quot;</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 3 — 가짜 실패</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;테스트 런으로 실행했는데 Cockpit에 아무 값도 나오지 않습니다. 테스트 런을 빼고 해볼까요?&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;테스트 런 없이 실행하기 전에, 방금 실행에서 덤프가 또 발생했는지 먼저 확인해 보겠습니다. 그게 판단 기준이 됩니다.&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>RuntimeListDumps</code> + <code>GetSqlQuery</code>(COBK) → &quot;네, <strong>테스트 런을 빼고 실제 실행하시면 됩니다.</strong> 빈 화면은 오류가 아니라 정상 동작입니다.&quot;</span></div></div></div>
 <ul>
 <li><code>RuntimeListDumps(user=WONIES)</code> → <strong>새 덤프 없음.</strong> 수정은 유효하다.</li>
 <li><code>GetSqlQuery</code>로 COBK 조회 → 문서 <strong>0300010300</strong>이 <strong>역분개되지 않은 활성 상태</strong>(STOKZ/STFLG 공백)로 남아 있음을 확인.</li>
@@ -523,7 +527,7 @@ zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
 <p>테스트 런 체크를 해제하고 실제 실행. Cockpit에 초록 불이 들어왔다 (2026.07.08 10:58:04). 마지막으로 세 가지를 재확인했다.</p>
 <p><img src="img/11-cockpit-success.png" alt="Allocation Cockpit 성공">
 <strong>그림 10 · 11-cockpit-success</strong> — 실제 실행 후의 Allocation Cockpit. Cycle WNACT2 — Period 2026.007 아래 초록 상태의 실행 건이 표시됐다. 7/6 이후 처음으로 완주한 실행이다.</p>
-<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 5 — 클로즈</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;실제 실행을 완료했습니다. 최종 상태를 확인해 주세요.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;완료 보고 확인했습니다. 최종 검증으로 ST22 신규 덤프 여부와 문서 상태를 직접 조회하겠습니다.&quot; → &quot;모든 검증이 완료되었습니다. <strong>이슈 클로즈.</strong>&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetSqlQuery</code>(COBK — 역분개·신규 문서 확인) + <code>RuntimeListDumps</code>(재발 확인).</span></div></div></div>
+<div class="chatlog"><div class="cl-head"><span class="cl-dots"><i></i><i></i><i></i></span><span class="cl-title">💬 세션 로그 4 — 클로즈</span></div><div class="cl-body"><div class="cl-row user"><div class="cl-av user">나</div><div class="cl-bubble user">&quot;실제 실행을 완료했습니다. 최종 상태를 확인해 주세요.&quot;</div></div><div class="cl-row agent"><div class="cl-av agent">AI</div><div class="cl-bubble agent">&quot;완료 보고 확인했습니다. 최종 검증으로 ST22 신규 덤프 여부와 문서 상태를 직접 조회하겠습니다.&quot; → &quot;모든 검증이 완료되었습니다. <strong>이슈 클로즈.</strong>&quot;</div></div><div class="cl-act"><span class="cl-act-tag">▷ SAP에서 실행된 것</span><span class="cl-act-body"><code>GetSqlQuery</code>(COBK — 역분개·신규 문서 확인) + <code>RuntimeListDumps</code>(재발 확인).</span></div></div></div>
 <table>
 <thead>
 <tr>
