@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 에이전트와 함께한 SAP 운영 장애 트러블슈팅기 — would-you</title>
+<meta name="description" content="ADT MCP 도구만으로 AI 에이전트가 DBSQL_REDIRECT_INCONSISTENCY 덤프의 원인을 특정하고 해결을 검증한 실제 트러블슈팅 기록.">
+<style>
+  :root{
+    --ground:#F6F7F9; --surface:#FFFFFF; --surface-2:#FBFCFD;
+    --ink:#16181D; --ink-soft:#59627A; --ink-faint:#8A93A6;
+    --line:#E4E7EC; --line-soft:#EEF1F5;
+    --accent:#0B5CAB; --accent-deep:#083E76; --accent-wash:#EAF2FB;
+    --risk:#C0392B; --warn:#C77D0A; --ok:#2E7D46;
+    --code-bg:#303E56; --code-ink:#D0D9E8;
+    --sans:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,'JetBrains Mono','D2Coding','SFMono-Regular',Consolas,'Courier New',monospace;
+    --measure:54rem;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:16.5px;line-height:1.75;letter-spacing:-.003em;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:var(--measure);margin:0 auto;padding:0 24px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+  a:hover{border-bottom-color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+  /* hero */
+  .hero{padding:7vh 0 2.6rem;border-bottom:1px solid var(--line);background:var(--surface-2)}
+  .back{display:inline-block;font-family:var(--mono);font-size:13px;color:var(--ink-faint);border-bottom:1px solid var(--line);margin-bottom:1.5rem}
+  .back:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .signal{display:flex;gap:7px;margin-bottom:1.2rem}
+  .signal span{width:11px;height:11px;border-radius:50%}
+  .signal .r{background:var(--risk)} .signal .a{background:var(--warn)} .signal .g{background:var(--ok)}
+  .brand{font-family:var(--mono);font-size:13px;letter-spacing:.02em;color:var(--accent-deep);font-weight:500}
+  .hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-.025em;font-weight:800;margin:.45rem 0 .6rem}
+  .hero .tagline{font-size:clamp(15px,2.2vw,18px);color:var(--ink-soft);font-weight:500;line-height:1.6;max-width:42rem}
+  .hero .meta{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-size:13.5px;color:var(--ink-faint);margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid var(--line-soft)}
+  .hero .meta b{color:var(--ink-soft);font-weight:600}
+  .wip{display:inline-flex;align-items:center;gap:.45rem;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--warn);
+    background:#FDF3E3;border:1px solid #F0DBB3;padding:3px 10px;border-radius:20px;margin-top:1.1rem}
+
+  /* document body — single constrained container so ALL nested content stays within measure */
+  .doc{max-width:var(--measure);margin:0 auto;padding:2.6rem 24px 4rem}
+  .doc pre,.doc table,.doc img,.doc figure,.doc iframe{max-width:100%}
+  .doc h1,.doc h2,.doc h3{line-height:1.28;letter-spacing:-.015em;font-weight:750;color:var(--ink);scroll-margin-top:1.5rem}
+  .doc h1{font-size:1.7rem;margin:2.6rem auto 1rem;padding-bottom:.5rem;border-bottom:2px solid var(--accent-wash)}
+  .doc h2{font-size:1.4rem;margin:2.2rem auto .9rem;color:var(--accent-deep)}
+  .doc h3{font-size:1.15rem;margin:1.7rem auto .6rem}
+  .doc p{margin:.7rem auto;color:#22252B}
+  .doc ul,.doc ol{margin:.6rem auto;padding-left:1.5rem}
+  .doc li{margin:.28rem 0}
+  .doc .indented{padding-left:1.4rem;border-left:2px solid var(--line)}
+  .doc hr{border:0;border-top:1px solid var(--line);margin:2.2rem auto}
+  .doc strong{font-weight:700;color:var(--ink)}
+  .doc a{color:var(--accent);border-bottom:1px solid var(--accent-wash)}
+  .doc a:hover{border-bottom-color:var(--accent)}
+
+  /* inline highlights (Notion) */
+  .doc [class*="highlight-"]{padding:.03em .28em;border-radius:4px}
+  .doc .highlight-orange{background:#FBEBD3;color:#9A5B08}
+  .doc .highlight-yellow{background:#FBF3C7;color:#8A6D00}
+  .doc .highlight-blue{background:var(--accent-wash);color:var(--accent-deep)}
+  .doc .highlight-gray,.doc .block-color-gray_background{background:var(--line-soft);color:var(--ink-soft)}
+  .doc .block-color-gray_background{display:block;padding:.9rem 1.1rem;border-radius:10px;border:1px solid var(--line)}
+
+  /* code blocks */
+  .doc pre.code{position:relative;background:#E6E6E6;border:1px solid #D4D4D4;border-radius:10px;
+    padding:1.85rem 1.15rem 1.1rem;margin:1.1rem auto;overflow-x:auto}
+  .doc pre.code code{font-family:var(--mono);font-size:13.5px;font-weight:400;line-height:1.7;color:#2C3340;
+    white-space:pre-wrap;word-break:break-word;background:none;padding:0;border:0;display:block;text-shadow:none}
+  /* Prism 기본 테마가 일부 토큰(operator 등)에 넣는 흰 배경/그림자 제거 */
+  .doc pre.code .token{background:none!important;text-shadow:none}
+  .doc code{font-family:var(--mono);font-size:.9em;background:var(--accent-wash);color:var(--accent-deep);padding:.1em .38em;border-radius:5px}
+  /* code copy button (light) */
+  .doc pre.code .copy-btn{position:absolute;top:7px;right:8px;font-family:var(--sans);font-size:11px;font-weight:600;
+    color:#5B6B84;background:#FFFFFF;border:1px solid #D9DEE6;border-radius:6px;
+    padding:3px 10px;cursor:pointer;transition:all .12s;opacity:.92}
+  .doc pre.code .copy-btn:hover{background:#EEF1F5;color:#1F2937;opacity:1}
+  .doc pre.code .copy-btn.done{color:#2E7D46;border-color:#B7E0C4;background:#EAF6EE}
+
+  /* images */
+  .doc figure.image{margin:1.4rem auto;text-align:center}
+  .doc figure.image a{border:0}
+  .doc figure.image img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 26px -16px rgba(16,24,40,.35)}
+  .doc figure.image figcaption{margin-top:.55rem;font-size:13px;color:var(--ink-faint)}
+  .doc figure.image figcaption strong{color:var(--ink-soft);font-weight:600}
+
+  /* tables */
+  .doc table{border-collapse:collapse;width:100%;margin:1.2rem auto;font-size:14.5px;display:block;overflow-x:auto}
+  .doc table.simple-table{border:1px solid var(--line);border-radius:10px}
+  .doc th,.doc td{border:1px solid var(--line);padding:.55rem .8rem;text-align:left;vertical-align:top;line-height:1.55}
+  .doc thead th,.doc .simple-table-header-color{background:var(--accent-wash);color:var(--accent-deep);font-weight:700}
+
+  /* table of contents */
+  .doc nav.toc-gen{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.6rem 1.7rem;margin:1.4rem auto}
+  .doc nav.toc-gen::before{content:"목차";display:block;font-size:1.3rem;font-weight:750;color:var(--ink);margin-bottom:1.1rem;letter-spacing:-.01em}
+  .doc .toc-item{margin:.1rem 0}
+  .doc .toc-item:first-child{margin-top:0}
+  .doc .toc-item a{color:var(--ink-soft);border-bottom:1px solid transparent;font-size:14px;line-height:1.7}
+  .doc .toc-item a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .doc .toc-l0{margin-top:1.1rem}
+  .doc .toc-l0 a{font-weight:750;color:var(--ink);font-size:15px}
+  .doc .toc-l1{padding-left:1.35rem}
+
+  /* columns (Notion) */
+  .doc .column-list{display:flex;flex-wrap:wrap;gap:1.2rem;margin:1rem auto}
+  .doc .column-list > div{display:contents}
+  .doc .column{flex:1 1 260px;min-width:0;padding:0!important;width:auto!important}
+  @media(max-width:680px){.doc .column{flex:1 1 100%}}
+
+  footer{padding:2.4rem 0 4rem;font-size:13.5px;color:var(--ink-faint);border-top:1px solid var(--line)}
+  footer .fl{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-bottom:.6rem}
+  footer a{color:var(--ink-soft);border-bottom:1px solid var(--line)}
+  footer a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<style>code[class*=language-],pre[class*=language-]{color:#000;background:0 0;text-shadow:0 1px #fff;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}code[class*=language-] ::-moz-selection,code[class*=language-]::-moz-selection,pre[class*=language-] ::-moz-selection,pre[class*=language-]::-moz-selection{text-shadow:none;background:#b3d4fc}code[class*=language-] ::selection,code[class*=language-]::selection,pre[class*=language-] ::selection,pre[class*=language-]::selection{text-shadow:none;background:#b3d4fc}@media print{code[class*=language-],pre[class*=language-]{text-shadow:none}}pre[class*=language-]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*=language-],pre[class*=language-]{background:#f5f2f0}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal}.token.cdata,.token.comment,.token.doctype,.token.prolog{color:#708090}.token.punctuation{color:#999}.token.namespace{opacity:.7}.token.boolean,.token.constant,.token.deleted,.token.number,.token.property,.token.symbol,.token.tag{color:#905}.token.attr-name,.token.builtin,.token.char,.token.inserted,.token.selector,.token.string{color:#690}.language-css .token.string,.style .token.string,.token.entity,.token.operator,.token.url{color:#9a6e3a;background:hsla(0,0%,100%,.5)}.token.atrule,.token.attr-value,.token.keyword{color:#07a}.token.class-name,.token.function{color:#dd4a68}.token.important,.token.regex,.token.variable{color:#e90}.token.bold,.token.important{font-weight:700}.token.italic{font-style:italic}.token.entity{cursor:help}</style>
+<style>
+  .doc blockquote{margin:1.2rem auto;padding:.9rem 1.3rem;background:#F5F8FC;border-left:4px solid var(--accent);border-radius:10px;color:#2C3340}
+  .doc blockquote>:first-child{margin-top:0}.doc blockquote>:last-child{margin-bottom:0}
+  .doc blockquote p{margin:.35rem auto}.doc blockquote ul,.doc blockquote ol{margin:.4rem auto}
+  .doc img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 26px -16px rgba(16,24,40,.3);display:block;margin:1.2rem auto}
+  .doc p:has(> img):only-child{text-align:center}
+  .doc ul:has(> li.chk){list-style:none;padding-left:1.7rem;margin-top:.5rem;margin-left:0}
+  .doc li.chk{list-style:none;margin:.4rem 0}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <a class="back" href="https://would-you-sap.github.io/">← would-you 포탈</a>
+    <div class="signal"><span class="r"></span><span class="a"></span><span class="g"></span></div>
+    <div class="brand">would-you · SAP</div>
+    <h1>AI 에이전트와 함께한 SAP 운영 장애 트러블슈팅기</h1>
+    <p class="tagline">SAP GUI 없이 ADT MCP 도구만으로, AI 에이전트가 운영 덤프의 원인을 특정하고 해결을 검증한 실제 기록입니다.</p>
+    <span class="wip">● Case Study · Agentic AI × ADT MCP · 2026-07</span>
+    <div class="meta"><span><b>주제</b> · SAP</span><span><b>형식</b> · Case Study</span></div>
+  </div>
+</header>
+
+<main class="doc">
+<nav class="toc-gen"><div class="toc-item toc-l1"><a href="#s1">들어가며</a></div><div class="toc-item toc-l1"><a href="#s2">요약</a></div><div class="toc-item toc-l1"><a href="#s3">01. 증상</a></div><div class="toc-item toc-l1"><a href="#s4">02. 덤프 해부</a></div><div class="toc-item toc-l1"><a href="#s5">03. DDIC 스캔</a></div><div class="toc-item toc-l1"><a href="#s6">04. 1차 시도와 실패</a></div><div class="toc-item toc-l1"><a href="#s7">05. 올바른 도구 찾기</a></div><div class="toc-item toc-l1"><a href="#s8">06. 해결과 검증</a></div><div class="toc-item toc-l1"><a href="#s12">07. 무엇이 달랐나</a></div><div class="toc-item toc-l1"><a href="#s16">맺음말</a></div><div class="toc-item toc-l1"><a href="#s17">부록 A. 사용한 MCP 도구 목록</a></div><div class="toc-item toc-l1"><a href="#s18">부록 B. 타임라인</a></div><div class="toc-item toc-l1"><a href="#s19">부록 C. 재발 시 조치 요약 (레시피)</a></div></nav>
+<p><strong>Case Study · Agentic AI × ADT MCP × ST22 Dump Analysis</strong></p>
+<p>Agentic AI · MCP (ABAP ADT) · ST22 · DBSQL_REDIRECT_INCONSISTENCY · CO-OM-CCA (KSU5) · Compatibility View · CI_COBL · S/4HANA (Release 758)</p>
+<p><strong>문서 목적</strong> · SAP GUI 트랜잭션 대신 ADT MCP 도구만으로 AI 에이전트가 운영 덤프의 원인을 특정하고, 해결을 검증한 실제 과정을 기록한다. 같은 증상(DBSQL_REDIRECT_INCONSISTENCY)의 해결 레시피이자, AI Agent를 활용한 SAP 운영 트러블슈팅 예제로 참고할 수 있다.</p>
+<p><strong>작성</strong> · 강우주 (Megazone Cloud, Dev Unit) · 2026-07</p>
+<p><strong>대상 시스템</strong> · S4H (SAP CAL S/4HANA Appliance, vhcals4hci), Client 100, HANA DB</p>
+<p><strong>도구</strong> · Claude Code + UZ4SAP 플러그인 (abap-mcp-adt MCP 서버)</p>
+<hr>
+<h2 id="s1">들어가며</h2>
+<p>SAP 운영 장애 분석의 전통적인 동선은 대략 이렇다. ST22를 열어 덤프를 읽고, SE11을 열어 딕셔너리를 뒤지고, SE38로 유틸리티 리포트를 찾고, 브라우저를 열어 SAP Note를 검색한다. 화면을 여러 장 띄워 놓고 사람이 그 사이를 오가며 퍼즐을 맞춘다.</p>
+<p>이번에는 질문을 바꿔 던졌다.</p>
+<blockquote>
+<p>&quot;AI 에이전트에게 ADT MCP 연결만 쥐여주면, GUI 없이 덤프의 원인을 특정하고 해결까지 검증할 수 있을까?&quot;</p>
+</blockquote>
+<p>마침 재료가 있었다. S4H 시스템에서 CO 실제 배부(KSU5)가 같은 덤프로 4번 연속 죽어 있었다. 에이전트에게 던진 첫 문장은 한 줄이었다.</p>
+<blockquote>
+<p>&quot;UZ4MCP로 s4h 서버에 접속해서, ST22에 존재하는 덤프가 있는지 확인하고 가장 최근 덤프 log를 분석해서 리포트 해주세요. (원인 파악 및 솔루션)&quot;</p>
+</blockquote>
+<p>이후 벌어진 일을 시간 순서대로 기록한다. 결론부터 말하면 — 원인 특정, 오답 걸러내기, 정답 도구 발견, 사후 검증까지 전부 MCP 위에서 이뤄졌고, 사람이 한 일은 GUI에서 버튼을 누르고 그 결과(스크린샷·로그 파일)를 에이전트에게 되돌려준 것뿐이다.</p>
+<hr>
+<h2 id="s2">요약</h2>
+<ul>
+<li><strong>증상</strong> — KSU5(실제 배부) 실행 시 <code>DBSQL_REDIRECT_INCONSISTENCY</code> 덤프 4연속 발생. 표준 프로그램 SAPFCOAL이 COEP 조회 중 사망.</li>
+<li><strong>원인</strong> — 코딩블록 고객 확장(CI_COBL)에 추가된 <strong>ZZ 필드 17개</strong>가 COEP 테이블에는 반영됐지만, S/4HANA 호환성 뷰 <strong>V_COEP에는 미주입</strong> → 테이블/뷰 정의 불일치로 커널이 SQL 리다이렉트를 거부.</li>
+<li><strong>해결</strong> — <code>RGZZGLUX</code>는 오답(CO 뷰는 처리 범위 밖). 정답은 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> (패키지 FINS_CO_UTIL). 실행 후 V_COEP 계열 뷰 24종 재생성 → KSU5 정상 완료, 덤프 재발 없음.</li>
+</ul>
+<hr>
+<h2 id="s3">01. 증상</h2>
+<p><strong>한 줄 요약</strong> · <em>덤프 목록 한 번의 조회로 &quot;일시적 오류&quot;가 아니라 &quot;재현되는 구조적 문제&quot;임이 드러났다.</em></p>
+<p>첫 도구 호출은 <code>RuntimeListDumps</code> — ST22를 여는 대신 ADT REST 피드로 덤프 목록을 가져온다. 최근 10건의 그림이 바로 나왔다.</p>
+<table>
+<thead>
+<tr>
+<th>발생 시각</th>
+<th>오류 유형</th>
+<th>프로그램</th>
+<th>사용자</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>07-06 15:59:27</td>
+<td><strong>DBSQL_REDIRECT_INCONSISTENCY</strong></td>
+<td>SAPFCOAL</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>07-06 15:58:24</td>
+<td>DBSQL_REDIRECT_INCONSISTENCY</td>
+<td>SAPFCOAL</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>07-06 15:57:02</td>
+<td>DBSQL_REDIRECT_INCONSISTENCY</td>
+<td>SAPFCOAL</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>07-06 15:56:37</td>
+<td>DBSQL_REDIRECT_INCONSISTENCY</td>
+<td>SAPFCOAL</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>07-03 11:04</td>
+<td>MESSAGE_TYPE_X</td>
+<td>CL_DISTRIBUTOR_SLD</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>06-29 12:44</td>
+<td>CALL_FUNCTION_CONFLICT_TYPE</td>
+<td>SAPLZMFG_FI_DOC</td>
+<td>WONIES</td>
+</tr>
+<tr>
+<td>…</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>같은 오류가 3분 사이 4회. 사용자가 KSU5를 계속 재시도한 흔적이다. 이 패턴 하나로 &quot;우연히 난 덤프&quot;라는 가설은 시작부터 제외됐다.</p>
+<p><img src="img/01-st22-dump-list.png" alt="ST22 덤프 목록">
+<strong>그림 1 · 01-st22-dump-list</strong> — ST22 덤프 목록. DBSQL_REDIRECT_INCONSISTENCY(SAPFCOAL)가 3분 사이 4건 연속 쌓여 있다.</p>
+<blockquote>
+<p><strong>참고</strong> · 덤프 ID는 <code>20260706155927vhcals4hci_S4H_00 ... WONIES 100 13</code> 형태의 ADT 리소스 키다. 이후 모든 상세 조회는 이 ID로 이뤄진다.</p>
+</blockquote>
+<hr>
+<h2 id="s4">02. 덤프 해부</h2>
+<p><strong>한 줄 요약</strong> · <em>284,770자짜리 덤프 전문은 서브에이전트에게 통째로 맡기고, 메인 세션은 결론만 받았다.</em></p>
+<p><code>RuntimeAnalyzeDump</code>로 최신 덤프의 포맷된 전문을 가져오니 <strong>284KB</strong>. 사람이 ST22에서 스크롤로 읽는 그 분량이다. 메인 대화의 컨텍스트를 아끼기 위해 파일로 저장한 뒤 <strong>서브에이전트</strong>를 띄워 전문을 통독시키고, 구조화된 리포트만 돌려받았다.</p>
+<p>핵심 섹션은 세 곳이었다.</p>
+<p><strong>(1) Error analysis — 원인 문장.</strong> 덤프가 원인을 문장으로 말해주고 있었다.</p>
+<blockquote>
+<p><em>&quot;A setting in the dictionary for table <strong>COEP</strong> stipulates that all read access to this table should be redirected to database object <strong>V_COEP</strong>. The definition of &quot;COEP&quot; and &quot;V_COEP&quot; are not consistent however.&quot;</em></p>
+</blockquote>
+<p><img src="img/02-dump-error-analysis.png" alt="덤프 Error analysis 섹션">
+<strong>그림 2 · 02-dump-error-analysis</strong> — 덤프 상세의 Error analysis 섹션. COEP → V_COEP 리다이렉트 정의 불일치가 원인 문장으로 명시되어 있다.</p>
+<p><strong>(2) 종료 지점 — 표준 코드의 평범한 SELECT.</strong></p>
+<pre class="code code-wrap"><code class="language-abap">* SAPFCOAL, Include FCOALF10, FORM reverse_coep (154행)
+  SELECT * FROM coep
+           APPENDING TABLE icoep
+         WHERE
+           kokrs = co_cycle-kokrs AND
+           belnr = docnr.
+</code></pre>
+<p><strong>(3) 콜스택 — 업무 맥락.</strong></p>
+<pre class="code code-wrap"><code class="language-abap">8 REVERSE_COEP            SAPFCOAL   FCOALF10  154   ← 종료 지점
+7 REVERSE_CCSS            SAPFCOAL   FCOALF10  129
+6 BOOK_REVERSAL_DOCUMENT  SAPLKGA2   LKGA2U02  840
+5 K_ALLOCATIONS_REVERSE   SAPLKGA2   LKGA2U02  651
+4 K_ALLOCATIONS_RUN       SAPLKGA2   LKGA2U01  126
+3 RUN                     SAPMKGA2   MKGA2F10   93   ← KSU5 실행
+</code></pre>
+<p>조합하면: <strong>KSU5로 배부 사이클 A000WNACT2(세그먼트 &quot;가구 본사비 실적 배부&quot;)를 재실행 → 기존 CO 문서 0300010300의 역분개 단계 → COEP 읽기에서 사망.</strong> 예외 객체의 <code>ENTITY=COEP / REDIRECT=V_COEP</code>, 커널 함수 <code>checkRedirection</code>(dbi_ast_symbol_table.cpp:1616), <code>SQLCODE=0</code>까지 확인 — DB 오류가 아니라 <strong>순수 DDIC 메타데이터 불일치</strong>라는 뜻이다.</p>
+<blockquote>
+<p><strong>여기서 배경 지식 하나.</strong> S/4HANA에서 CO 개별항목의 실적 데이터는 ACDOCA로 통합됐고, COEP를 읽는 레거시 코드는 커널이 호환성 뷰 V_COEP로 몰래 리다이렉트한다. 이 리다이렉트 시점마다 커널이 테이블과 뷰의 필드 정의를 비교하는데, 하나라도 어긋나면 이 덤프가 난다.</p>
+</blockquote>
+<hr>
+<h2 id="s5">03. DDIC 스캔</h2>
+<p><strong>한 줄 요약</strong> · <em>SE11을 열지 않고 GetView → GetTable → GetStructure 체인으로 내려가니, 불일치의 실체가 필드 이름 17개로 특정됐다.</em></p>
+<p>&quot;정의가 불일치한다&quot;는 덤프의 문장을 <strong>어느 필드가 어떻게 다른가</strong>까지 끌어내리는 것이 이 단계의 목표였다.</p>
+<p><strong>Step 1 — 뷰 쪽.</strong> <code>SearchObject(&#39;V_COEP*&#39;)</code>로 리다이렉트 대상의 정체를 확인했다: DDL Source <strong>V_COEP</strong> / CDS 엔티티 <strong>V_COEP_VIEW</strong> / SQL 뷰 <strong>V_COEP</strong> (패키지 KACC_ERP50). <code>GetView(&#39;V_COEP&#39;)</code>로 DDL 전문을 읽자 눈에 걸리는 부분이 있었다.</p>
+<pre class="code code-wrap"><code class="language-sql">          budget_pd,
+          pbudget_pd,
+          prodper,
+
+          // Do not delete this comment
+          //&lt;$VF&gt;
+//&lt;$FIELDS&gt;          ← 비어 있는 플레이스홀더
+//&lt;$VF&gt;
+          awtyp,
+          ...
+     from coep
+    where not ( wrttp = &#39;04&#39; or wrttp = &#39;U4&#39; or wrttp = &#39;U1&#39; )
+  union all
+   select ...
+    from V_Coep_R3_view   ← ACDOCA를 COEP 구조로 매핑하는 하위 뷰
+</code></pre>
+<p><code>//&lt;$FIELDS&gt;</code>는 <strong>고객 확장 필드가 자동 주입되는 자리</strong>다. 그런데 비어 있다. &quot;테이블에는 확장 필드가 있는데 뷰에는 없다&quot;는 가설이 이 시점에 섰다.</p>
+<p><strong>Step 2 — 테이블 쪽.</strong> <code>GetTable(&#39;COEP&#39;)</code> → <code>key include coep_key</code> + <code>include coep_only</code> + 후미 필드 구성. <code>GetStructure(&#39;COEP_ONLY&#39;)</code>의 끝부분에서 결정적 단서가 나왔다.</p>
+<pre class="code code-wrap"><code class="language-abap">  include fcom_s_incl_budget_period;   → 뷰와 일치 ✓
+  include incl_prodper;                → 뷰와 일치 ✓
+  include ci_cobl;                     ← ★ 코딩블록 고객 include
+  ci_prs_cpils_2 : include ci_prs_cpils_2;   (시스템에 미존재 = 기여 없음, 정상)
+</code></pre>
+<p><strong>Step 3 — 범인.</strong> <code>GetStructure(&#39;CI_COBL&#39;)</code>:</p>
+<pre class="code code-wrap"><code class="language-abap">zzpnacct, zzaccnam, zzaccnm2, zzaccnm3, zzaccnm4,
+zz_div, zz_biz, zz_artist, zz_pjt, zz_pacc,
+zz_cctr, zz_glacc, zz_prjtxt1, zz_prjtxt2,
+zz_biztype, zz_plnsmon, zz_plnemon          — 17개 필드
+</code></pre>
+<p><img src="img/04-ci-cobl-structure.png" alt="CI_COBL 구조">
+<strong>그림 3 · 04-ci-cobl-structure</strong> — SE11의 CI_COBL(코딩블록 고객 include). COEP에는 반영됐지만 뷰에는 없는 ZZ 필드 17개.</p>
+<p>이 17개가 <code>COEP_ONLY → include ci_cobl</code> 경로로 <strong>COEP의 정식 필드</strong>가 되어 있는데, V_COEP의 <code>&lt;$FIELDS&gt;</code> 자리는 비어 있다. <strong>COEP = 뷰보다 17개 필드 많음.</strong> 커널의 리다이렉트 정합성 체크가 실패할 수밖에 없는 구조다.</p>
+<p><code>GetInactiveObjects()</code>는 0건 — &quot;활성화하다 만&quot; 상태가 아니라, <strong>코딩블록 확장(OXK3) 후 호환성 뷰 재생성이 아예 누락된</strong> 상태라는 판정까지 내려졌다.</p>
+<table>
+<thead>
+<tr>
+<th>검증 항목</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>COEP_KEY (mandt, kokrs, belnr, buzei)</td>
+<td>뷰와 일치 ✓</td>
+</tr>
+<tr>
+<td>COEP_ONLY 표준 필드 + budget/prodper include</td>
+<td>뷰와 일치 ✓</td>
+</tr>
+<tr>
+<td><strong>CI_COBL (ZZ 필드 17개)</strong></td>
+<td><strong>뷰에 없음 ✗ ← 불일치 지점</strong></td>
+</tr>
+<tr>
+<td>후미 필드 (awtyp ~ qunit3)</td>
+<td>뷰와 일치 ✓</td>
+</tr>
+<tr>
+<td>비활성 오브젝트</td>
+<td>0건 (활성화 미완료 아님)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="s6">04. 1차 시도와 실패</h2>
+<p><strong>한 줄 요약</strong> · <em>&quot;실행했으니 됐겠지&quot;가 아니라, 실행 직후 같은 도구로 재검증했기에 오답임을 10분 만에 알았다.</em></p>
+<p>코딩블록 확장 후 재생성이라면 교과서적 답은 <code>RGZZGLUX</code>(코딩블록 전체 재생성)다. 사용자가 SE38에서 실행하고 로그를 텍스트 파일로 전달했다. 로그는 온통 성공이었다.</p>
+<pre class="code code-wrap"><code class="language-abap">Start of program RGZZGLUX on 20260708 at 103621
+...
+Coding block subscreens were generated without error
+Table ACDOC_SI_NUM_CHAR_CUST_GEN was generated successfully
+End of program RGZZGLUX on 20260708 at 103710
+Financial accounting programs have been generated successfully
+</code></pre>
+<p><img src="img/05-rgzzglux-log.png" alt="RGZZGLUX 실행 로그">
+<strong>그림 4 · 05-rgzzglux-log</strong> — RGZZGLUX 실행 로그. 전 항목 성공이지만, CO 호환성 뷰는 처리 목록에 없다.</p>
+<p>여기서 멈췄다면 &quot;조치 완료&quot;로 오판했을 것이다. 그러나 에이전트는 곧바로 <code>GetView(&#39;V_COEP&#39;)</code>를 다시 호출했고 — <strong><code>//&lt;$FIELDS&gt;</code>는 여전히 비어 있었다.</strong></p>
+<p>로그를 다시 읽어보면 이유가 보인다. RGZZGLUX가 만진 것은 FI-SL 프로그램, 코딩블록 서브스크린, ACDOCA 쪽 include(<code>ACDOC_SI_NUM_CHAR_CUST_GEN</code>)까지다. <strong>CO 호환성 뷰(V_COEP)는 처리 범위 밖</strong>이었다.</p>
+<blockquote>
+<p><em>실행 로그의 &quot;성공&quot;과 문제의 &quot;해결&quot;은 다른 명제다. 검증은 로그가 아니라 대상 오브젝트에서 해야 한다.</em></p>
+</blockquote>
+<p>이 실패가 완전히 헛되지는 않았다. ACDOCA 측 고객필드 include가 재생성된 상태였기에, 다음 단계의 뷰 재생성이 한 번에 통과할 토대는 오히려 마련돼 있었다.</p>
+<hr>
+<h2 id="s7">05. 올바른 도구 찾기</h2>
+<p><strong>한 줄 요약</strong> · <em>웹 검색으로 후보를 찾고, 시스템 검색으로 존재를 확인하고, 소스 리딩으로 파라미터의 의미까지 파악한 뒤에 실행을 요청했다.</em></p>
+<p>세 갈래 탐색을 병렬로 돌렸다.</p>
+<ol>
+<li><strong>WebSearch</strong> — <code>DBSQL_REDIRECT_INCONSISTENCY COEP V_COEP CI_COBL</code> 검색. SAP 커뮤니티의 동일 증상 사례(BSEG/ACDOCA 확장 계열)에서 <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 리포트가 해법으로 등장.</li>
+<li><strong>SearchObject</strong> — 실제 시스템에서 <code>FCO_CDS*</code> 패턴 검색. 패키지 <strong>FINS_CO_UTIL</strong>에 4형제가 존재함을 확인:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>프로그램</th>
+<th>설명</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>FCO_CDS_VIEW_GENERATE</strong></td>
+<td>sFIN: Generation of CDS Views</td>
+<td>CO 호환성 뷰 전체 재생성 (채택)</td>
+</tr>
+<tr>
+<td>FCO_CDS_VIEW_REPAIR</td>
+<td>sFIN: Repair single CDS View</td>
+<td>단건 수리</td>
+</tr>
+<tr>
+<td>FCO_CDS_VIEW_RESET</td>
+<td>sFIN: Reset of CDS Views</td>
+<td>필드 제거/초기화</td>
+</tr>
+<tr>
+<td>FCO_CDS_VIEW_GENERATE_XPRA</td>
+<td>XPRA 버전</td>
+<td>업그레이드용</td>
+</tr>
+</tbody></table>
+<ol start="3">
+<li><strong>GetProgram</strong> — 실행 전에 소스를 읽었다. 선택화면의 유일한 체크박스 <code>no_check</code>가 무엇인지 코드로 확인:</li>
+</ol>
+<pre class="code code-wrap"><code class="language-abap">PARAMETERS: p_debug TYPE abap_bool NO-DISPLAY,
+            no_check TYPE abap_bool AS CHECKBOX.
+...
+cl_fco_cds_view_generator=&gt;generate_coep(
+  EXPORTING iv_debug    = p_debug
+            iv_no_check = no_check   &quot;note 2502634
+  ... ).
+</code></pre>
+<p><code>no_check</code>는 SAP Note 2502634로 추가된 &quot;사전 점검 생략&quot; 플래그. <strong>1차 실행은 체크 없이</strong>가 정석이라는 가이드까지 소스에서 도출됐다. 사용자가 SE38 화면을 캡처해 &quot;이 화면인데 뭘 체크하죠?&quot;라고 물었을 때, 에이전트는 추측이 아니라 방금 읽은 소스로 답할 수 있었다.</p>
+<p><img src="img/06-fco-generate-selscreen.png" alt="FCO_CDS_VIEW_GENERATE 선택화면">
+<strong>그림 5 · 06-fco-generate-selscreen</strong> — FCO_CDS_VIEW_GENERATE 선택화면. 화면에 보이는 것은 &quot;No Check&quot; 체크박스 하나뿐이지만, 그 의미는 소스를 읽어야 알 수 있다.</p>
+<hr>
+<h2 id="s8">06. 해결과 검증</h2>
+<p><strong>한 줄 요약</strong> · <em>뷰 24종 재생성 → DDL 재확인 → 그런데 KSU5 테스트런이 빈 화면 → SQL 조회로 &quot;정상 동작&quot;임을 규명 → 실제 실행 성공.</em></p>
+<h3 id="s9">6-1. 재생성과 1차 검증</h3>
+<p>사용자가 <code>FCO_CDS_VIEW_GENERATE</code>를 실행하고 결과 로그를 xlsx로 내보냈다. 에이전트가 파일을 파싱하니:</p>
+<pre class="code code-wrap"><code class="language-abap">Start of Generation V_COEP_*: Date 2026.07.08, Time 10:46:06
+Generation of View V_COEP_ACDOCA_DDL was successful
+Generation of View V_COEP_R3 was successful
+Generation of View V_COEP was successful
+Generation of View V_COVP_KAEP was successful
+... (총 24종)
+Mass-Activation was successful
+</code></pre>
+<p><img src="img/07-fco-generate-log.png" alt="뷰 재생성 로그">
+<strong>그림 6 · 07-fco-generate-log</strong> — FCO_CDS_VIEW_GENERATE 결과 로그(스프레드시트 내보내기). V_COEP 포함 24종 재생성 + Mass-Activation 성공.</p>
+<p>이번에도 로그를 믿지 않고 <code>GetView(&#39;V_COEP&#39;)</code>로 재검증했다. 이번에는 달랐다:</p>
+<pre class="code code-wrap"><code class="language-sql">          // Do not delete this comment
+          //&lt;$VF&gt;
+zzpnacct,
+zzaccnam,
+...
+zz_plnemon,        ← 17개 필드가 UNION 양쪽 구간 모두에 주입됨
+//&lt;$FIELDS&gt;
+//&lt;$VF&gt;
+</code></pre>
+<p><img src="img/08-vcoep-ddl-after.png" alt="조치 후 V_COEP DDL">
+<strong>그림 7 · 08-vcoep-ddl-after</strong> — 조치 후 V_COEP DDL. 조치 전 비어 있던 <code>//&lt;$FIELDS&gt;</code> 자리에 ZZ 필드 17개가 주입되어 있다.</p>
+<p>DDIC 불일치 해소 확정.</p>
+<h3 id="s10">6-2. 빈 Cockpit의 미스터리</h3>
+<p>KSU5 재실행 단계에서 작은 반전이 있었다. 입력값을 채우고 <strong>테스트 런</strong>을 돌렸는데 Allocation Cockpit이 텅 비어 나온 것이다. &quot;또 뭔가 잘못됐나?&quot; 싶은 순간, 에이전트가 두 가지를 조회했다.</p>
+<p><img src="img/09-ksu5-initial-screen.png" alt="KSU5 초기 화면 입력값">
+<strong>그림 8 · 09-ksu5-initial-screen</strong> — KSU5 초기 화면. 관리회계영역 A000, 7기간/2026, 사이클 WNACT2(시작일 2026.01.01), Test Run 체크 상태.</p>
+<p><img src="img/10-cockpit-empty.png" alt="빈 Allocation Cockpit">
+<strong>그림 9 · 10-cockpit-empty</strong> — 테스트 런 직후의 Allocation Cockpit. 실행 건이 하나도 표시되지 않아 실패처럼 보이지만, 원인 규명 결과 정상 동작이었다.</p>
+<ul>
+<li><code>RuntimeListDumps(user=WONIES)</code> → <strong>새 덤프 없음.</strong> 수정은 유효하다.</li>
+<li><code>GetSqlQuery</code>로 COBK 조회 → 문서 <strong>0300010300</strong>이 <strong>역분개되지 않은 활성 상태</strong>(STOKZ/STFLG 공백)로 남아 있음을 확인.</li>
+</ul>
+<p>퍼즐이 맞춰졌다. 7기간에 이미 배부 문서가 존재하는데, <strong>테스트 런은 기존 문서의 역분개를 수행하지 않는다</strong>(역분개는 실제 실행에서만). 처리할 대상이 없으니 Cockpit이 빈 것 — 오류가 아니라 정상 동작이었다. 참고로 사이클 입력값(<code>WNACT2</code>, 시작일 2026.01.01)도 추측이 아니라 <code>GetSqlQuery</code>로 T811C를 조회해 확정했다. 덤프 변수에 찍힌 <code>A000WNACT2</code>가 &quot;관리회계영역(A000) + 사이클명(WNACT2)&quot;의 결합 키라는 것까지.</p>
+<h3 id="s11">6-3. 실제 실행과 최종 검증</h3>
+<p>테스트 런 체크를 해제하고 실제 실행. Cockpit에 초록 불이 들어왔다 (2026.07.08 10:58:04). 마지막으로 세 가지를 재확인했다.</p>
+<p><img src="img/11-cockpit-success.png" alt="Allocation Cockpit 성공">
+<strong>그림 10 · 11-cockpit-success</strong> — 실제 실행 후의 Allocation Cockpit. Cycle WNACT2 — Period 2026.007 아래 초록 상태의 실행 건이 표시됐다. 7/6 이후 처음으로 완주한 실행이다.</p>
+<table>
+<thead>
+<tr>
+<th>검증 항목</th>
+<th>방법</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>기존 문서 0300010300</td>
+<td>GetSqlQuery (COBK)</td>
+<td>✅ 역분개 완료 (STOKZ=X, STFLG=X) — <strong>7/6에 4연속 덤프났던 바로 그 단계 통과</strong></td>
+</tr>
+<tr>
+<td>신규 배부 문서</td>
+<td>GetSqlQuery (COBK)</td>
+<td>✅ 0300010500 / 0300010501 정상 포스팅 (7기간/2026, RKIU)</td>
+</tr>
+<tr>
+<td>덤프 재발</td>
+<td>RuntimeListDumps</td>
+<td>✅ DBSQL_REDIRECT_INCONSISTENCY 재발 없음</td>
+</tr>
+</tbody></table>
+<p>이슈 클로즈.</p>
+<hr>
+<h2 id="s12">07. 무엇이 달랐나</h2>
+<p><strong>한 줄 요약</strong> · <em>AI는 조회·분석·검증을, 사람은 실행과 승인을 맡았다. 경계는 &quot;시스템 상태를 바꾸는가&quot;였다.</em></p>
+<h3 id="s13">역할 분담</h3>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>AI (MCP로 직접)</th>
+<th>사람 (GUI)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>증상 파악</td>
+<td>덤프 목록/전문 조회·분석</td>
+<td>—</td>
+</tr>
+<tr>
+<td>원인 특정</td>
+<td>뷰 DDL, 테이블, 구조체, 비활성 오브젝트 스캔</td>
+<td>—</td>
+</tr>
+<tr>
+<td>도구 선정</td>
+<td>웹 검색, 오브젝트 검색, <strong>리포트 소스 리딩</strong></td>
+<td>—</td>
+</tr>
+<tr>
+<td>조치 실행</td>
+<td>—</td>
+<td>RGZZGLUX, FCO_CDS_VIEW_GENERATE, KSU5 실행</td>
+</tr>
+<tr>
+<td>결과 전달</td>
+<td>—</td>
+<td>스크린샷·로그 파일 첨부</td>
+</tr>
+<tr>
+<td>검증</td>
+<td>실행 때마다 뷰/덤프/DB 재조회</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>시스템 상태를 바꾸는 실행(재생성 리포트, 배부 포스팅)은 전부 사람이 GUI에서 눌렀다. 반대로 읽기 계열은 전부 AI가 MCP로 처리했고, 사람은 SE11도 ST22도 열지 않았다.</p>
+<h3 id="s14">검증 루프가 만든 차이</h3>
+<p>이번 케이스의 분기점은 두 번의 &quot;실행 후 즉시 재검증&quot;이었다.</p>
+<ol>
+<li><strong>RGZZGLUX 직후</strong> — 로그는 전부 성공이었지만 <code>GetView</code> 재조회로 placeholder가 여전히 빈 것을 발견. &quot;성공 로그 ≠ 문제 해결&quot;을 10분 만에 판정하고 다음 탐색으로 이동.</li>
+<li><strong>테스트 런의 빈 화면</strong> — 겉보기엔 실패 신호였지만 덤프 재조회 + COBK 조회로 &quot;정상 동작&quot;임을 규명. 불필요한 원점 회귀를 차단.</li>
+</ol>
+<p>사람이 GUI로 같은 검증을 하려면 SE11 비교, ST22 재확인, SE16 조회를 오가야 한다. 에이전트는 이것을 실행 결과가 도착한 그 턴에 해치웠다.</p>
+<h3 id="s15">축적</h3>
+<p>세션 마지막에 이 트러블슈팅의 요지(&quot;이 시스템에서 같은 덤프가 재발하면 RGZZGLUX가 아니라 FCO_CDS_VIEW_GENERATE&quot;)를 에이전트의 영구 메모리에 저장했다. 다음 세션의 에이전트는 이 오답 경로를 건너뛴다. <strong>함정이 개인의 경험이 아니라 팀의 자산으로 축적되는 구조</strong>다.</p>
+<hr>
+<h2 id="s16">맺음말</h2>
+<p>이번 실험의 답은 이렇게 정리할 수 있다.</p>
+<p><strong>&quot;GUI 없이 가능한가?&quot;</strong> — 분석과 검증은 완전히 가능했다. 덤프 전문 해부, DDIC 3단 스캔(뷰→테이블→구조체), 유틸리티 리포트의 소스 리딩, 트랜잭션 데이터 SQL 조회까지 — ST22·SE11·SE38·SE16이 하던 일이 전부 MCP 호출로 대체됐다.</p>
+<p><strong>&quot;AI가 다 했는가?&quot;</strong> — 아니다. 실행 버튼은 전부 사람이 눌렀고, 그래야 했다. 시스템 상태를 바꾸는 결정에 사람의 승인이 끼는 구조는 안전장치이자, 역설적으로 AI가 분석에 전념하게 하는 분업이기도 했다.</p>
+<p><strong>가장 큰 소득은 속도가 아니라 검증 밀도였다.</strong> 사람은 &quot;성공 로그&quot;를 보면 넘어가고 싶어진다. 에이전트는 실행 결과가 올 때마다 기계적으로 대상 오브젝트를 재조회했고, 그 습관이 오답(RGZZGLUX)을 조기에 걸러내고 가짜 실패(빈 Cockpit)를 오판하지 않게 했다. 운영 트러블슈팅에서 AI 에이전트의 가치는 &quot;빨리 아는 것&quot;보다 <strong>&quot;확인 없이 넘어가지 않는 것&quot;</strong> 에 있었다.</p>
+<hr>
+<h2 id="s17">부록 A. 사용한 MCP 도구 목록</h2>
+<table>
+<thead>
+<tr>
+<th>도구</th>
+<th>용도</th>
+<th>이번 케이스에서의 쓰임</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RuntimeListDumps</td>
+<td>ST22 덤프 목록</td>
+<td>증상 파악, 조치 후 재발 확인 (3회)</td>
+</tr>
+<tr>
+<td>RuntimeAnalyzeDump</td>
+<td>덤프 상세/포맷 전문</td>
+<td>284KB 로그 확보 → 서브에이전트 분석</td>
+</tr>
+<tr>
+<td>SearchObject</td>
+<td>오브젝트 검색</td>
+<td>V_COEP 정체 확인, FCO_CDS* 도구 발견</td>
+</tr>
+<tr>
+<td>GetView</td>
+<td>CDS/DDL 소스 조회</td>
+<td>placeholder 발견, 조치 전후 3회 비교 검증</td>
+</tr>
+<tr>
+<td>GetTable / GetStructure</td>
+<td>테이블·구조체 정의</td>
+<td>COEP → COEP_ONLY → CI_COBL 체인 스캔</td>
+</tr>
+<tr>
+<td>GetInactiveObjects</td>
+<td>비활성 오브젝트</td>
+<td>&quot;활성화 미완료&quot; 가설 배제</td>
+</tr>
+<tr>
+<td>GetProgram</td>
+<td>ABAP 소스 조회</td>
+<td>FCO_CDS_VIEW_GENERATE의 no_check 의미 확인</td>
+</tr>
+<tr>
+<td>GetSqlQuery</td>
+<td>ABAP SQL 조회</td>
+<td>T811C(사이클), COBK(문서 상태) 확인</td>
+</tr>
+<tr>
+<td>WebSearch / WebFetch</td>
+<td>웹 검색</td>
+<td>해법 후보(FCO_CDS_VIEW_GENERATE) 발굴</td>
+</tr>
+</tbody></table>
+<h2 id="s18">부록 B. 타임라인</h2>
+<table>
+<thead>
+<tr>
+<th>시각 (2026)</th>
+<th>사건</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>07-06 15:56 ~ 15:59</td>
+<td>KSU5 실행 → DBSQL_REDIRECT_INCONSISTENCY 4연속 덤프</td>
+</tr>
+<tr>
+<td>07-08 오전</td>
+<td>에이전트 분석 시작 — 덤프 목록/전문, 원인 문장 확보</td>
+</tr>
+<tr>
+<td>07-08</td>
+<td>DDIC 스캔 — CI_COBL 17개 ZZ 필드 vs 빈 <code>&lt;$FIELDS&gt;</code> 특정</td>
+</tr>
+<tr>
+<td>07-08 10:36~10:37</td>
+<td>RGZZGLUX 실행 (사람) → 재검증 결과 <strong>미해결</strong> 판정 (AI)</td>
+</tr>
+<tr>
+<td>07-08 10:46</td>
+<td>FCO_CDS_VIEW_GENERATE 실행 (사람) → 뷰 24종 재생성 성공</td>
+</tr>
+<tr>
+<td>07-08 10:4x</td>
+<td>GetView 재검증 — ZZ 필드 주입 확인 (AI)</td>
+</tr>
+<tr>
+<td>07-08 10:5x</td>
+<td>KSU5 테스트 런 → 빈 Cockpit → &quot;정상 동작&quot; 규명 (AI: 덤프/COBK 조회)</td>
+</tr>
+<tr>
+<td>07-08 10:58</td>
+<td>KSU5 실제 실행 성공 — 역분개 + 신규 문서 2건 포스팅</td>
+</tr>
+<tr>
+<td>07-08</td>
+<td>최종 검증 (덤프 재발 없음) → 이슈 클로즈, 메모리 저장</td>
+</tr>
+</tbody></table>
+<h2 id="s19">부록 C. 재발 시 조치 요약 (레시피)</h2>
+<p><strong>증상</strong> · <code>DBSQL_REDIRECT_INCONSISTENCY</code>, Error analysis에 &quot;COEP … redirected to database object V_COEP … not consistent&quot;.</p>
+<ol>
+<li><strong>원인 확인</strong> — SE11(또는 MCP GetStructure)로 <code>CI_COBL</code> 필드 목록 확인 → GetView <code>V_COEP</code>의 <code>//&lt;$FIELDS&gt;</code> 플레이스홀더와 대조. 테이블에만 있는 필드가 있으면 확진.</li>
+<li><strong>조치</strong> — SE38 → <strong><code>FCO_CDS_VIEW_GENERATE</code></strong> 실행 (&quot;No Check&quot; 미선택). ⚠️ <code>RGZZGLUX</code>는 이 케이스를 해결하지 못한다 (FI-SL/서브스크린/ACDOCA include까지만 처리).</li>
+<li><strong>검증</strong> — V_COEP DDL에 확장 필드 주입 확인 → 원 트랜잭션 재실행 → ST22 재발 확인.</li>
+<li><strong>주의</strong> — KSU5는 대상 기간에 기포스팅 문서가 있으면 <strong>테스트 런에서 역분개를 하지 않아 Cockpit이 비어 보일 수 있다.</strong> 오류가 아니다. 실제 실행에서 역분개+재배부가 수행된다.</li>
+<li><strong>관련 도구</strong> — 단건 수리 <code>FCO_CDS_VIEW_REPAIR</code>, 필드 제거 <code>FCO_CDS_VIEW_RESET</code>. <code>no_check</code> 옵션은 SAP Note 2502634 참고.</li>
+</ol>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fl"><a href="https://would-you-sap.github.io/">← 포탈로</a></div>
+    <div>© 2026 would-you · SAP · AI · UI5 개발 기록</div>
+  </div>
+</footer>
+
+<script>var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?self:{},Prism=function(e){var n=/(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i,t=0,r={},a={manual:e.Prism&&e.Prism.manual,disableWorkerMessageHandler:e.Prism&&e.Prism.disableWorkerMessageHandler,util:{encode:function e(n){return n instanceof i?new i(n.type,e(n.content),n.alias):Array.isArray(n)?n.map(e):n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\u00a0/g," ")},type:function(e){return Object.prototype.toString.call(e).slice(8,-1)},objId:function(e){return e.__id||Object.defineProperty(e,"__id",{value:++t}),e.__id},clone:function e(n,t){var r,i;switch(t=t||{},a.util.type(n)){case"Object":if(i=a.util.objId(n),t[i])return t[i];for(var l in r={},t[i]=r,n)n.hasOwnProperty(l)&&(r[l]=e(n[l],t));return r;case"Array":return i=a.util.objId(n),t[i]?t[i]:(r=[],t[i]=r,n.forEach((function(n,a){r[a]=e(n,t)})),r);default:return n}},getLanguage:function(e){for(;e;){var t=n.exec(e.className);if(t)return t[1].toLowerCase();e=e.parentElement}return"none"},setLanguage:function(e,t){e.className=e.className.replace(RegExp(n,"gi"),""),e.classList.add("language-"+t)},currentScript:function(){if("undefined"==typeof document)return null;if("currentScript"in document)return document.currentScript;try{throw new Error}catch(r){var e=(/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(r.stack)||[])[1];if(e){var n=document.getElementsByTagName("script");for(var t in n)if(n[t].src==e)return n[t]}return null}},isActive:function(e,n,t){for(var r="no-"+n;e;){var a=e.classList;if(a.contains(n))return!0;if(a.contains(r))return!1;e=e.parentElement}return!!t}},languages:{plain:r,plaintext:r,text:r,txt:r,extend:function(e,n){var t=a.util.clone(a.languages[e]);for(var r in n)t[r]=n[r];return t},insertBefore:function(e,n,t,r){var i=(r=r||a.languages)[e],l={};for(var o in i)if(i.hasOwnProperty(o)){if(o==n)for(var s in t)t.hasOwnProperty(s)&&(l[s]=t[s]);t.hasOwnProperty(o)||(l[o]=i[o])}var u=r[e];return r[e]=l,a.languages.DFS(a.languages,(function(n,t){t===u&&n!=e&&(this[n]=l)})),l},DFS:function e(n,t,r,i){i=i||{};var l=a.util.objId;for(var o in n)if(n.hasOwnProperty(o)){t.call(n,o,n[o],r||o);var s=n[o],u=a.util.type(s);"Object"!==u||i[l(s)]?"Array"!==u||i[l(s)]||(i[l(s)]=!0,e(s,t,o,i)):(i[l(s)]=!0,e(s,t,null,i))}}},plugins:{},highlightAll:function(e,n){a.highlightAllUnder(document,e,n)},highlightAllUnder:function(e,n,t){var r={callback:t,container:e,selector:'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'};a.hooks.run("before-highlightall",r),r.elements=Array.prototype.slice.apply(r.container.querySelectorAll(r.selector)),a.hooks.run("before-all-elements-highlight",r);for(var i,l=0;i=r.elements[l++];)a.highlightElement(i,!0===n,r.callback)},highlightElement:function(n,t,r){var i=a.util.getLanguage(n),l=a.languages[i];a.util.setLanguage(n,i);var o=n.parentElement;o&&"pre"===o.nodeName.toLowerCase()&&a.util.setLanguage(o,i);var s={element:n,language:i,grammar:l,code:n.textContent};function u(e){s.highlightedCode=e,a.hooks.run("before-insert",s),s.element.innerHTML=s.highlightedCode,a.hooks.run("after-highlight",s),a.hooks.run("complete",s),r&&r.call(s.element)}if(a.hooks.run("before-sanity-check",s),(o=s.element.parentElement)&&"pre"===o.nodeName.toLowerCase()&&!o.hasAttribute("tabindex")&&o.setAttribute("tabindex","0"),!s.code)return a.hooks.run("complete",s),void(r&&r.call(s.element));if(a.hooks.run("before-highlight",s),s.grammar)if(t&&e.Worker){var c=new Worker(a.filename);c.onmessage=function(e){u(e.data)},c.postMessage(JSON.stringify({language:s.language,code:s.code,immediateClose:!0}))}else u(a.highlight(s.code,s.grammar,s.language));else u(a.util.encode(s.code))},highlight:function(e,n,t){var r={code:e,grammar:n,language:t};if(a.hooks.run("before-tokenize",r),!r.grammar)throw new Error('The language "'+r.language+'" has no grammar.');return r.tokens=a.tokenize(r.code,r.grammar),a.hooks.run("after-tokenize",r),i.stringify(a.util.encode(r.tokens),r.language)},tokenize:function(e,n){var t=n.rest;if(t){for(var r in t)n[r]=t[r];delete n.rest}var a=new s;return u(a,a.head,e),o(e,a,n,a.head,0),function(e){for(var n=[],t=e.head.next;t!==e.tail;)n.push(t.value),t=t.next;return n}(a)},hooks:{all:{},add:function(e,n){var t=a.hooks.all;t[e]=t[e]||[],t[e].push(n)},run:function(e,n){var t=a.hooks.all[e];if(t&&t.length)for(var r,i=0;r=t[i++];)r(n)}},Token:i};function i(e,n,t,r){this.type=e,this.content=n,this.alias=t,this.length=0|(r||"").length}function l(e,n,t,r){e.lastIndex=n;var a=e.exec(t);if(a&&r&&a[1]){var i=a[1].length;a.index+=i,a[0]=a[0].slice(i)}return a}function o(e,n,t,r,s,g){for(var f in t)if(t.hasOwnProperty(f)&&t[f]){var h=t[f];h=Array.isArray(h)?h:[h];for(var d=0;d<h.length;++d){if(g&&g.cause==f+","+d)return;var v=h[d],p=v.inside,m=!!v.lookbehind,y=!!v.greedy,k=v.alias;if(y&&!v.pattern.global){var x=v.pattern.toString().match(/[imsuy]*$/)[0];v.pattern=RegExp(v.pattern.source,x+"g")}for(var b=v.pattern||v,w=r.next,A=s;w!==n.tail&&!(g&&A>=g.reach);A+=w.value.length,w=w.next){var E=w.value;if(n.length>e.length)return;if(!(E instanceof i)){var P,L=1;if(y){if(!(P=l(b,A,e,m))||P.index>=e.length)break;var S=P.index,O=P.index+P[0].length,j=A;for(j+=w.value.length;S>=j;)j+=(w=w.next).value.length;if(A=j-=w.value.length,w.value instanceof i)continue;for(var C=w;C!==n.tail&&(j<O||"string"==typeof C.value);C=C.next)L++,j+=C.value.length;L--,E=e.slice(A,j),P.index-=A}else if(!(P=l(b,0,E,m)))continue;S=P.index;var N=P[0],_=E.slice(0,S),M=E.slice(S+N.length),W=A+E.length;g&&W>g.reach&&(g.reach=W);var z=w.prev;if(_&&(z=u(n,z,_),A+=_.length),c(n,z,L),w=u(n,z,new i(f,p?a.tokenize(N,p):N,k,N)),M&&u(n,w,M),L>1){var I={cause:f+","+d,reach:W};o(e,n,t,w.prev,A,I),g&&I.reach>g.reach&&(g.reach=I.reach)}}}}}}function s(){var e={value:null,prev:null,next:null},n={value:null,prev:e,next:null};e.next=n,this.head=e,this.tail=n,this.length=0}function u(e,n,t){var r=n.next,a={value:t,prev:n,next:r};return n.next=a,r.prev=a,e.length++,a}function c(e,n,t){for(var r=n.next,a=0;a<t&&r!==e.tail;a++)r=r.next;n.next=r,r.prev=n,e.length-=a}if(e.Prism=a,i.stringify=function e(n,t){if("string"==typeof n)return n;if(Array.isArray(n)){var r="";return n.forEach((function(n){r+=e(n,t)})),r}var i={type:n.type,content:e(n.content,t),tag:"span",classes:["token",n.type],attributes:{},language:t},l=n.alias;l&&(Array.isArray(l)?Array.prototype.push.apply(i.classes,l):i.classes.push(l)),a.hooks.run("wrap",i);var o="";for(var s in i.attributes)o+=" "+s+'="'+(i.attributes[s]||"").replace(/"/g,"&quot;")+'"';return"<"+i.tag+' class="'+i.classes.join(" ")+'"'+o+">"+i.content+"</"+i.tag+">"},!e.document)return e.addEventListener?(a.disableWorkerMessageHandler||e.addEventListener("message",(function(n){var t=JSON.parse(n.data),r=t.language,i=t.code,l=t.immediateClose;e.postMessage(a.highlight(i,a.languages[r],r)),l&&e.close()}),!1),a):a;var g=a.util.currentScript();function f(){a.manual||a.highlightAll()}if(g&&(a.filename=g.src,g.hasAttribute("data-manual")&&(a.manual=!0)),!a.manual){var h=document.readyState;"loading"===h||"interactive"===h&&g&&g.defer?document.addEventListener("DOMContentLoaded",f):window.requestAnimationFrame?window.requestAnimationFrame(f):window.setTimeout(f,16)}return a}(_self);"undefined"!=typeof module&&module.exports&&(module.exports=Prism),"undefined"!=typeof global&&(global.Prism=Prism);
+Prism.languages.abap={comment:/^\*.*/m,string:/(`|')(?:\\.|(?!\1)[^\\\r\n])*\1/,"string-template":{pattern:/([|}])(?:\\.|[^\\|{\r\n])*(?=[|{])/,lookbehind:!0,alias:"string"},"eol-comment":{pattern:/(^|\s)".*/m,lookbehind:!0,alias:"comment"},keyword:{pattern:/(\s|\.|^)(?:\*-INPUT|\?TO|ABAP-SOURCE|ABBREVIATED|ABS|ABSTRACT|ACCEPT|ACCEPTING|ACCESSPOLICY|ACCORDING|ACOS|ACTIVATION|ACTUAL|ADD|ADD-CORRESPONDING|ADJACENT|AFTER|ALIAS|ALIASES|ALIGN|ALL|ALLOCATE|ALPHA|ANALYSIS|ANALYZER|AND|ANY|APPEND|APPENDAGE|APPENDING|APPLICATION|ARCHIVE|AREA|ARITHMETIC|AS|ASCENDING|ASIN|ASPECT|ASSERT|ASSIGN|ASSIGNED|ASSIGNING|ASSOCIATION|ASYNCHRONOUS|AT|ATAN|ATTRIBUTES|AUTHORITY|AUTHORITY-CHECK|AVG|BACK|BACKGROUND|BACKUP|BACKWARD|BADI|BASE|BEFORE|BEGIN|BETWEEN|BIG|BINARY|BINDING|BIT|BIT-AND|BIT-NOT|BIT-OR|BIT-XOR|BLACK|BLANK|BLANKS|BLOB|BLOCK|BLOCKS|BLUE|BOUND|BOUNDARIES|BOUNDS|BOXED|BREAK-POINT|BT|BUFFER|BY|BYPASSING|BYTE|BYTE-CA|BYTE-CN|BYTE-CO|BYTE-CS|BYTE-NA|BYTE-NS|BYTE-ORDER|C|CA|CALL|CALLING|CASE|CAST|CASTING|CATCH|CEIL|CENTER|CENTERED|CHAIN|CHAIN-INPUT|CHAIN-REQUEST|CHANGE|CHANGING|CHANNELS|CHAR-TO-HEX|CHARACTER|CHARLEN|CHECK|CHECKBOX|CIRCULAR|CI_|CLASS|CLASS-CODING|CLASS-DATA|CLASS-EVENTS|CLASS-METHODS|CLASS-POOL|CLEANUP|CLEAR|CLIENT|CLOB|CLOCK|CLOSE|CN|CNT|CO|COALESCE|CODE|CODING|COLLECT|COLOR|COLUMN|COLUMNS|COL_BACKGROUND|COL_GROUP|COL_HEADING|COL_KEY|COL_NEGATIVE|COL_NORMAL|COL_POSITIVE|COL_TOTAL|COMMENT|COMMENTS|COMMIT|COMMON|COMMUNICATION|COMPARING|COMPONENT|COMPONENTS|COMPRESSION|COMPUTE|CONCAT|CONCATENATE|COND|CONDENSE|CONDITION|CONNECT|CONNECTION|CONSTANTS|CONTEXT|CONTEXTS|CONTINUE|CONTROL|CONTROLS|CONV|CONVERSION|CONVERT|COPIES|COPY|CORRESPONDING|COS|COSH|COUNT|COUNTRY|COVER|CP|CPI|CREATE|CREATING|CRITICAL|CS|CURRENCY|CURRENCY_CONVERSION|CURRENT|CURSOR|CURSOR-SELECTION|CUSTOMER|CUSTOMER-FUNCTION|DANGEROUS|DATA|DATABASE|DATAINFO|DATASET|DATE|DAYLIGHT|DBMAXLEN|DD\/MM\/YY|DD\/MM\/YYYY|DDMMYY|DEALLOCATE|DECIMALS|DECIMAL_SHIFT|DECLARATIONS|DEEP|DEFAULT|DEFERRED|DEFINE|DEFINING|DEFINITION|DELETE|DELETING|DEMAND|DEPARTMENT|DESCENDING|DESCRIBE|DESTINATION|DETAIL|DIALOG|DIRECTORY|DISCONNECT|DISPLAY|DISPLAY-MODE|DISTANCE|DISTINCT|DIV|DIVIDE|DIVIDE-CORRESPONDING|DIVISION|DO|DUMMY|DUPLICATE|DUPLICATES|DURATION|DURING|DYNAMIC|DYNPRO|E|EACH|EDIT|EDITOR-CALL|ELSE|ELSEIF|EMPTY|ENABLED|ENABLING|ENCODING|END|END-ENHANCEMENT-SECTION|END-LINES|END-OF-DEFINITION|END-OF-FILE|END-OF-PAGE|END-OF-SELECTION|ENDAT|ENDCASE|ENDCATCH|ENDCHAIN|ENDCLASS|ENDDO|ENDENHANCEMENT|ENDEXEC|ENDFOR|ENDFORM|ENDFUNCTION|ENDIAN|ENDIF|ENDING|ENDINTERFACE|ENDLOOP|ENDMETHOD|ENDMODULE|ENDON|ENDPROVIDE|ENDSELECT|ENDTRY|ENDWHILE|ENGINEERING|ENHANCEMENT|ENHANCEMENT-POINT|ENHANCEMENT-SECTION|ENHANCEMENTS|ENTRIES|ENTRY|ENVIRONMENT|EQ|EQUAL|EQUIV|ERRORMESSAGE|ERRORS|ESCAPE|ESCAPING|EVENT|EVENTS|EXACT|EXCEPT|EXCEPTION|EXCEPTION-TABLE|EXCEPTIONS|EXCLUDE|EXCLUDING|EXEC|EXECUTE|EXISTS|EXIT|EXIT-COMMAND|EXP|EXPAND|EXPANDING|EXPIRATION|EXPLICIT|EXPONENT|EXPORT|EXPORTING|EXTEND|EXTENDED|EXTENSION|EXTRACT|FAIL|FETCH|FIELD|FIELD-GROUPS|FIELD-SYMBOL|FIELD-SYMBOLS|FIELDS|FILE|FILTER|FILTER-TABLE|FILTERS|FINAL|FIND|FIRST|FIRST-LINE|FIXED-POINT|FKEQ|FKGE|FLOOR|FLUSH|FONT|FOR|FORM|FORMAT|FORWARD|FOUND|FRAC|FRAME|FRAMES|FREE|FRIENDS|FROM|FUNCTION|FUNCTION-POOL|FUNCTIONALITY|FURTHER|GAPS|GE|GENERATE|GET|GIVING|GKEQ|GKGE|GLOBAL|GRANT|GREATER|GREEN|GROUP|GROUPS|GT|HANDLE|HANDLER|HARMLESS|HASHED|HAVING|HDB|HEAD-LINES|HEADER|HEADERS|HEADING|HELP-ID|HELP-REQUEST|HIDE|HIGH|HINT|HOLD|HOTSPOT|I|ICON|ID|IDENTIFICATION|IDENTIFIER|IDS|IF|IGNORE|IGNORING|IMMEDIATELY|IMPLEMENTATION|IMPLEMENTATIONS|IMPLEMENTED|IMPLICIT|IMPORT|IMPORTING|IN|INACTIVE|INCL|INCLUDE|INCLUDES|INCLUDING|INCREMENT|INDEX|INDEX-LINE|INFOTYPES|INHERITING|INIT|INITIAL|INITIALIZATION|INNER|INOUT|INPUT|INSERT|INSTANCES|INTENSIFIED|INTERFACE|INTERFACE-POOL|INTERFACES|INTERNAL|INTERVALS|INTO|INVERSE|INVERTED-DATE|IS|ISO|ITERATOR|ITNO|JOB|JOIN|KEEP|KEEPING|KERNEL|KEY|KEYS|KEYWORDS|KIND|LANGUAGE|LAST|LATE|LAYOUT|LE|LEADING|LEAVE|LEFT|LEFT-JUSTIFIED|LEFTPLUS|LEFTSPACE|LEGACY|LENGTH|LESS|LET|LEVEL|LEVELS|LIKE|LINE|LINE-COUNT|LINE-SELECTION|LINE-SIZE|LINEFEED|LINES|LIST|LIST-PROCESSING|LISTBOX|LITTLE|LLANG|LOAD|LOAD-OF-PROGRAM|LOB|LOCAL|LOCALE|LOCATOR|LOG|LOG-POINT|LOG10|LOGFILE|LOGICAL|LONG|LOOP|LOW|LOWER|LPAD|LPI|LT|M|MAIL|MAIN|MAJOR-ID|MAPPING|MARGIN|MARK|MASK|MATCH|MATCHCODE|MAX|MAXIMUM|MEDIUM|MEMBERS|MEMORY|MESH|MESSAGE|MESSAGE-ID|MESSAGES|MESSAGING|METHOD|METHODS|MIN|MINIMUM|MINOR-ID|MM\/DD\/YY|MM\/DD\/YYYY|MMDDYY|MOD|MODE|MODIF|MODIFIER|MODIFY|MODULE|MOVE|MOVE-CORRESPONDING|MULTIPLY|MULTIPLY-CORRESPONDING|NA|NAME|NAMETAB|NATIVE|NB|NE|NESTED|NESTING|NEW|NEW-LINE|NEW-PAGE|NEW-SECTION|NEXT|NO|NO-DISPLAY|NO-EXTENSION|NO-GAP|NO-GAPS|NO-GROUPING|NO-HEADING|NO-SCROLLING|NO-SIGN|NO-TITLE|NO-TOPOFPAGE|NO-ZERO|NODE|NODES|NON-UNICODE|NON-UNIQUE|NOT|NP|NS|NULL|NUMBER|NUMOFCHAR|O|OBJECT|OBJECTS|OBLIGATORY|OCCURRENCE|OCCURRENCES|OCCURS|OF|OFF|OFFSET|OLE|ON|ONLY|OPEN|OPTION|OPTIONAL|OPTIONS|OR|ORDER|OTHER|OTHERS|OUT|OUTER|OUTPUT|OUTPUT-LENGTH|OVERFLOW|OVERLAY|PACK|PACKAGE|PAD|PADDING|PAGE|PAGES|PARAMETER|PARAMETER-TABLE|PARAMETERS|PART|PARTIALLY|PATTERN|PERCENTAGE|PERFORM|PERFORMING|PERSON|PF|PF-STATUS|PINK|PLACES|POOL|POSITION|POS_HIGH|POS_LOW|PRAGMAS|PRECOMPILED|PREFERRED|PRESERVING|PRIMARY|PRINT|PRINT-CONTROL|PRIORITY|PRIVATE|PROCEDURE|PROCESS|PROGRAM|PROPERTY|PROTECTED|PROVIDE|PUBLIC|PUSHBUTTON|PUT|QUEUE-ONLY|QUICKINFO|RADIOBUTTON|RAISE|RAISING|RANGE|RANGES|RAW|READ|READ-ONLY|READER|RECEIVE|RECEIVED|RECEIVER|RECEIVING|RED|REDEFINITION|REDUCE|REDUCED|REF|REFERENCE|REFRESH|REGEX|REJECT|REMOTE|RENAMING|REPLACE|REPLACEMENT|REPLACING|REPORT|REQUEST|REQUESTED|RESERVE|RESET|RESOLUTION|RESPECTING|RESPONSIBLE|RESULT|RESULTS|RESUMABLE|RESUME|RETRY|RETURN|RETURNCODE|RETURNING|RIGHT|RIGHT-JUSTIFIED|RIGHTPLUS|RIGHTSPACE|RISK|RMC_COMMUNICATION_FAILURE|RMC_INVALID_STATUS|RMC_SYSTEM_FAILURE|ROLE|ROLLBACK|ROUND|ROWS|RTTI|RUN|SAP|SAP-SPOOL|SAVING|SCALE_PRESERVING|SCALE_PRESERVING_SCIENTIFIC|SCAN|SCIENTIFIC|SCIENTIFIC_WITH_LEADING_ZERO|SCREEN|SCROLL|SCROLL-BOUNDARY|SCROLLING|SEARCH|SECONDARY|SECONDS|SECTION|SELECT|SELECT-OPTIONS|SELECTION|SELECTION-SCREEN|SELECTION-SET|SELECTION-SETS|SELECTION-TABLE|SELECTIONS|SELECTOR|SEND|SEPARATE|SEPARATED|SET|SHARED|SHIFT|SHORT|SHORTDUMP-ID|SIGN|SIGN_AS_POSTFIX|SIMPLE|SIN|SINGLE|SINH|SIZE|SKIP|SKIPPING|SMART|SOME|SORT|SORTABLE|SORTED|SOURCE|SPACE|SPECIFIED|SPLIT|SPOOL|SPOTS|SQL|SQLSCRIPT|SQRT|STABLE|STAMP|STANDARD|START-OF-SELECTION|STARTING|STATE|STATEMENT|STATEMENTS|STATIC|STATICS|STATUSINFO|STEP-LOOP|STOP|STRLEN|STRUCTURE|STRUCTURES|STYLE|SUBKEY|SUBMATCHES|SUBMIT|SUBROUTINE|SUBSCREEN|SUBSTRING|SUBTRACT|SUBTRACT-CORRESPONDING|SUFFIX|SUM|SUMMARY|SUMMING|SUPPLIED|SUPPLY|SUPPRESS|SWITCH|SWITCHSTATES|SYMBOL|SYNCPOINTS|SYNTAX|SYNTAX-CHECK|SYNTAX-TRACE|SYSTEM-CALL|SYSTEM-EXCEPTIONS|SYSTEM-EXIT|TAB|TABBED|TABLE|TABLES|TABLEVIEW|TABSTRIP|TAN|TANH|TARGET|TASK|TASKS|TEST|TESTING|TEXT|TEXTPOOL|THEN|THROW|TIME|TIMES|TIMESTAMP|TIMEZONE|TITLE|TITLE-LINES|TITLEBAR|TO|TOKENIZATION|TOKENS|TOP-LINES|TOP-OF-PAGE|TRACE-FILE|TRACE-TABLE|TRAILING|TRANSACTION|TRANSFER|TRANSFORMATION|TRANSLATE|TRANSPORTING|TRMAC|TRUNC|TRUNCATE|TRUNCATION|TRY|TYPE|TYPE-POOL|TYPE-POOLS|TYPES|ULINE|UNASSIGN|UNDER|UNICODE|UNION|UNIQUE|UNIT|UNIT_CONVERSION|UNIX|UNPACK|UNTIL|UNWIND|UP|UPDATE|UPPER|USER|USER-COMMAND|USING|UTF-8|VALID|VALUE|VALUE-REQUEST|VALUES|VARY|VARYING|VERIFICATION-MESSAGE|VERSION|VIA|VIEW|VISIBLE|WAIT|WARNING|WHEN|WHENEVER|WHERE|WHILE|WIDTH|WINDOW|WINDOWS|WITH|WITH-HEADING|WITH-TITLE|WITHOUT|WORD|WORK|WRITE|WRITER|X|XML|XOR|XSD|XSTRLEN|YELLOW|YES|YYMMDD|Z|ZERO|ZONE)(?![\w-])/i,lookbehind:!0},number:/\b\d+\b/,operator:{pattern:/(\s)(?:\*\*?|<[=>]?|>=?|\?=|[-+\/=])(?=\s)/,lookbehind:!0},"string-operator":{pattern:/(\s)&&?(?=\s)/,lookbehind:!0,alias:"keyword"},"token-operator":[{pattern:/(\w)(?:->?|=>|[~|{}])(?=\w)/,lookbehind:!0,alias:"punctuation"},{pattern:/[|{}]/,alias:"punctuation"}],punctuation:/[,.:()]/};
+try{ if(window.Prism){ Prism.highlightAll(); } }catch(e){}
+</script>
+<script>
+(function(){document.querySelectorAll('main.doc pre.code').forEach(function(pre){var b=document.createElement('button');b.className='copy-btn';b.type='button';b.textContent='복사';b.addEventListener('click',function(){var c=pre.querySelector('code');navigator.clipboard.writeText(c?c.innerText:pre.innerText).then(function(){b.textContent='복사됨';b.classList.add('done');setTimeout(function(){b.textContent='복사';b.classList.remove('done');},1400);});});pre.appendChild(b);});})();
+</script>
+</body>
+</html>
