@@ -56,6 +56,7 @@
   .tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.15rem}
   .tag{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:5px}
   .tag.sap{background:#EAF2FB;color:var(--accent)} .tag.ai{background:#EFE9FB;color:#6B4BC0}
+  .cover.quick{background:radial-gradient(120% 140% at 12% 0%,#1B8FA8 0%,#12758C 45%,#0A4A5C 100%)}
   .card-title{font-size:20px;font-weight:750;line-height:1.32;letter-spacing:-.01em;color:var(--ink)}
   .card-blurb{font-size:14.5px;color:var(--ink-soft);line-height:1.62;flex:1}
   .card-go{font-size:13.5px;font-weight:700;color:var(--accent);margin-top:.4rem;letter-spacing:.01em}
@@ -87,9 +88,24 @@
 
 <section>
   <div class="wrap">
-    <div class="eyebrow">사례 · Cases <span class="count">1</span></div>
+    <div class="eyebrow">사례 · Cases <span class="count">2</span></div>
 
     <div class="cards" id="grid">
+
+      <div class="card">
+        <a class="card-hit" href="./ai-quick-dashboard/">
+          <div class="cover quick">
+            <div class="cv-dots"><span style="background:#FF6B5E"></span><span style="background:#FFD166"></span><span style="background:#7CE0A3"></span></div>
+            <span class="cv-tag">CASE STUDY · AI×MCP 시리즈 3편</span>
+          </div>
+          <div class="card-body">
+            <div class="tags"><span class="tag sap">SAP</span><span class="tag ai">AI</span></div>
+            <div class="card-title">Amazon Quick과 SAP의 첫 대화</div>
+            <p class="card-blurb">자연어 요청 한 줄로 온프레미스 S/4HANA의 재무 데이터를 실시간 조회해 대시보드 3종을 만들기까지 — MCP 연동, 보안 통제(차단 목록·승인·집계), 그리고 사람 검증이 잡아낸 AI의 집계 누락까지 한 시간의 기록. (인터랙티브 대시보드 포함)</p>
+            <span class="card-go">읽기 →</span>
+          </div>
+        </a>
+      </div>
 
       <div class="card">
         <a class="card-hit" href="./adt-mcp-dump-troubleshooting/">
